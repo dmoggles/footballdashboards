@@ -1,0 +1,12 @@
+git+http://github.com/dmoggles/mplsoccer
+seaborn
+scikit-learn
+matplotlib==3.6.0
+tabulate
+cmasher
+jinja2
+adjustText
+black
+pylint
+mypy
+ipykernel
