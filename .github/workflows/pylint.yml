@@ -24,4 +24,6 @@ jobs:
     - name: Analysing the code with black
       run: |
         black $(git ls-files 'footballdashboards/*.py')
-    
+    - name: Analysing code with mypy
+      run: |
+        mypy $(git ls-files 'footballdashboards/*.py')
