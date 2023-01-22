@@ -10,3 +10,4 @@ black
 pylint
 mypy
 ipykernel
+pre-commit
