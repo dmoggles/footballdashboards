@@ -21,3 +21,7 @@ jobs:
     - name: Analysing the code with pylint
       run: |
         pylint $(git ls-files 'footballdashboards/*.py')
+    - name: Analysing the code with black
+      run: |
+        black $(git ls-files 'footballdashboards/*.py')
+    
