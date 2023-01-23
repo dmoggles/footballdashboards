@@ -1,2 +1,8 @@
 [FORMAT]
 max-line-length=100
+
+[MASTER]
+ignore-patterns=test_.*?py,setup.py
+
+[MESSAGES CONTROL]
+disable=too-few-public-methods

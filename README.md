@@ -8,3 +8,8 @@ Run the following commands first.
 - If developing in Linux: `source env/bin/activate`
 - If developing in Windows: `env\scripts\activate`
 - `pip install -r requirements/dev.txt`
+
+## Examples
+The `examples` folder contains a sample dataset, a sample data accessor class that illustrates the
+data accessor duck type and some sample notebooks. The docstring of each Dashboard class
+provides in depth documentation on using each Dashboard

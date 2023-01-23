@@ -6,7 +6,18 @@
         "**/CVS": true,
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
-        "**/env": true
+        "**/env": true,
+        "**/__pycache__": true
     },
-    "explorerExclude.backup": {}
+    "explorerExclude.backup": {},
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "pylint.args": [
+        "--ignore-patterns=test_.*?py"
+    ],
+    "pylint.interpreter": ["env\\Scripts\\python.exe"],
+    "jupyter.notebookFileRoot": "${workspaceFolder}"
 }

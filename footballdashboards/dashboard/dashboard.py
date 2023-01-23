@@ -4,15 +4,16 @@ to all dashboards.
 """
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Dict, List, Tuple
 import pandas as pd
 from footballdashboards._types._data_accessor import _DataAccessor
 from footballdashboards._types._dashboard_fields import ColorField
 from footballdashboards._defaults._colours import FIGURE_FACECOLOUR, TEXT_COLOUR
 from footballdashboards._types._custom_types import PlotReturnType
+from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService
 
 
-class Dashboard(ABC):
+class Dashboard(ABC):  # pylint: disable=too-few-public-methods
     """
     Dashboard ABC which all dashboard visualizations must inherit from.
 
@@ -21,8 +22,26 @@ class Dashboard(ABC):
 
     """
 
-    facecolor = ColorField(FIGURE_FACECOLOUR)
-    textcolor = ColorField(TEXT_COLOUR)
+    field_descriptor_list: Dict[str, List[Tuple[str, str]]] = {}
+
+    facecolor = ColorField(description="Figure background colour", default=FIGURE_FACECOLOUR)
+    textcolor = ColorField(description="Figure text colour", default=TEXT_COLOUR)
+    badge_service = McLachBotBadgeService()
+
+    @classmethod
+    def get_full_field_descriptor_list(cls) -> List[Tuple[str, str]]:
+        """
+        Function that returns the full field descriptor list
+
+        Returns:
+            List[Tuple[str, str]]: Full field descriptor list
+        """
+        _descriptors = cls.field_descriptor_list[cls.__name__].copy()
+        for parent in cls.__bases__:
+            if hasattr(parent, "get_full_field_descriptor_list"):
+                _descriptors.extend(parent.get_full_field_descriptor_list())
+
+        return _descriptors
 
     def __init__(self, data_accessor: _DataAccessor):
         """
@@ -36,13 +55,24 @@ class Dashboard(ABC):
         """
         self.data_accessor = data_accessor
 
+    @property
     @abstractmethod
-    def _required_data_columns(self) -> List[str]:
+    def datasource_name(self) -> str:
         """
-        Function that returns a list of required data columns
+        Function that returns the name of the datasource
 
         Returns:
-            List[str]: List of required data columns
+            str: Name of the datasource
+        """
+
+    @abstractmethod
+    def _required_data_columns(self) -> Dict[str, str]:
+        """
+        Function that returns a listing of the required data columns
+        and a description of each column
+
+        Returns:
+            Dict[str, str]: Dictionary of required data columns and their descriptions
         """
 
     @abstractmethod
@@ -61,9 +91,9 @@ class Dashboard(ABC):
         Args:
             kwargs: Keyword arguments to pass to the plot function
         """
-        data = self.data_accessor.get_data(self.__class__.__name__, **kwargs)
+        data = self.data_accessor.get_data(self.datasource_name, **kwargs)
         self._validate_data(data)
-        return self._plot_data(data, **kwargs)
+        return self._plot_data(data)
 
     def _validate_data(self, data: pd.DataFrame):
         """
@@ -95,17 +125,17 @@ class Dashboard(ABC):
         """
         return self._plot(match_date=match_date, team=team)
 
-    def player_season_plot(self, player: str, league: str, season: int) -> PlotReturnType:
+    def describe_adjustable_fields(self) -> Dict[str, str]:
         """
-        Function that plots the dashboard for a specific player, league and season
-
-        Args:
-            player (str): Name of the player
-            league (str): Name of the league
-            season (int): Season to plot
+        Function that returns a dictionary of the adjustable fields and their descriptions
 
         Returns:
-            PlotReturnType: Figure and dictionary of Axes of the dashboard
-
+            Dict[str, str]: Dictionary of adjustable fields and their descriptions
         """
-        return self._plot(player=player, league=league, season=season)
+        descriptor_list = self.get_full_field_descriptor_list()
+        descriptors = {
+            field[0]: f"{field[1]}. Current value: {getattr(self, field[0])}"
+            for field in descriptor_list
+        }
+
+        return descriptors

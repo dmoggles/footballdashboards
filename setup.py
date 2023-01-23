@@ -6,15 +6,15 @@ from setuptools import setup, find_namespace_packages
 # https://packaging.python.org/guides/single-sourcing-package-version/
 VERSION: Dict[str, Any] = {}
 
-with open("./fb_viz/version.py") as fp:
+with open("./footballdashboards/version.py") as fp:
     # pylint: disable=W0122
     exec(fp.read(), VERSION)
 
 setup(
-    name="fb_viz",
+    name="footballdashboards",
     author="Dmitry Mogilevsky",
     author_email="dmitry.mogilevsky@gmail.com",
-    description="Football Visualisation Tools",
+    description="Football Dashboards",
     version=VERSION.get("__version__", "0.0.0"),
     package_dir={".": "."},
     packages=find_namespace_packages(where="."),
@@ -31,7 +31,7 @@ setup(
         "tabulate",
         "cmasher",
         "adjustText",
-        "jinja2"
+        "jinja2",
     ],
     classifiers=[
         "Development Status :: 1 - Planning",
