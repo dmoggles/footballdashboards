@@ -12,5 +12,4 @@ mypy
 ipykernel
 pre-commit
 pytest
-unittest
 git-pylint-commit-hook
