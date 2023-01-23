@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from typing import Dict, Tuple, Sequence, Optional
 import pandas as pd
 import numpy as np
-from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 from matplotlib.cm import get_cmap
 import matplotlib.pyplot as plt
@@ -16,7 +15,7 @@ from sklearn.ensemble import IsolationForest
 from adjustText import adjust_text
 
 from footballdashboards.dashboard.dashboard import Dashboard
-from footballdashboards.helpers.fonts import font_normal
+from footballdashboards.helpers.fonts import font_normal, font_italic
 from footballdashboards._types._dashboard_fields import (
     FigSizeField,
     FontSizeField,
@@ -275,14 +274,43 @@ class ScatterDashboard(SeasonLeagueMixin, Dashboard):
         annotations = self._annotate_points_on_scatter(axis, data)
         self._adjust_text_positions(axis, annotations)
 
+    def _write_endnote_annotation(self, axis: Axes):
+        if self.texts.explanatory_text:
+            axis.text(
+                0.01,
+                1.1,
+                self.texts.explanatory_text,
+                size=10,
+                ha="left",
+                va="bottom",
+                fontproperties=font_italic.prop,
+            )
+
+    def _write_watermark(self, axis: Axes):
+        if self.watermark:
+            axis.text(
+                0.99,
+                0.5,
+                self.watermark,
+                size=10,
+                va="center",
+                ha="center",
+                fontproperties=font_normal.prop,
+            )
+
+    def _plot_endnote(self, axis: Axes, data: pd.DataFrame):
+        competitions = data[self.LEAGUE_COLUMN].unique()
+        self._draw_league_legend(axis, competitions)
+        self._write_endnote_annotation(axis)
+        self._write_watermark(axis)
+
     def _plot_data(self, data: pd.DataFrame) -> PlotReturnType:
         fig, axes = self._init_fig()
-        competitions = data[self.LEAGUE_COLUMN].unique()
+
         data = self._setup_data(data)
         self._draw_title(axes[self.TITLE_KEY])
-        self._draw_league_legend(axes[self.ENDNOTE_KEY], competitions)
         self._setup_scatter_axes(axes[self.SCATTER_KEY], data)
-
+        self._plot_endnote(axes[self.ENDNOTE_KEY], data)
         self._plot_scatter(axes[self.SCATTER_KEY], data)
         return fig, axes
 

@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple
 import pandas as pd
 from footballdashboards._types._data_accessor import _DataAccessor
-from footballdashboards._types._dashboard_fields import ColorField
+from footballdashboards._types._dashboard_fields import ColorField, DashboardField
 from footballdashboards._defaults._colours import FIGURE_FACECOLOUR, TEXT_COLOUR
 from footballdashboards._types._custom_types import PlotReturnType
 from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService
@@ -26,6 +26,7 @@ class Dashboard(ABC):  # pylint: disable=too-few-public-methods
 
     facecolor = ColorField(description="Figure background colour", default=FIGURE_FACECOLOUR)
     textcolor = ColorField(description="Figure text colour", default=TEXT_COLOUR)
+    watermark = DashboardField(description="Watermark to add to the figure", default="McLachBot")
     badge_service = McLachBotBadgeService()
 
     @classmethod
