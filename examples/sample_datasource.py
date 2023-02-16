@@ -13,7 +13,10 @@ class SampleDatasource:
     Example datasource for use with the sample dashboards.
     """
 
-    EXAMPLE_DICT = {"ScatterDashboard": "scatter_example.csv"}
+    EXAMPLE_DICT = {
+        "ScatterDashboard": "scatter_example.csv",
+        "ShotPlotDashboard": "messi_shots.csv",
+    }
 
     @classmethod
     def get_data(cls, data_requester_name: str, **_) -> pd.DataFrame:

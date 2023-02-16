@@ -19,3 +19,19 @@ def player_name_first_initial_surname_formatter(player_name: str) -> str:
     if len(player_name.split()) == 1:
         return player_name.title()
     return f"{player_name.split()[0][0]} {player_name.split()[-1]}".title()
+
+
+def full_name_formatter(player_name: str) -> str:
+    """
+    Formats the full player name
+
+    Args:
+        player_name (str): player name
+
+    Returns:
+        str: formatted player name
+    """
+
+    if player_name is None:
+        return None
+    return player_name.title()

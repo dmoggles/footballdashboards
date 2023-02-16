@@ -85,7 +85,7 @@ class Dashboard(ABC):  # pylint: disable=too-few-public-methods
             data (pd.DataFrame): Data to plot
         """
 
-    def _plot(self, **kwargs) -> PlotReturnType:
+    def plot(self, **kwargs) -> PlotReturnType:
         """
         Function that plots the dashboard
 
@@ -93,6 +93,16 @@ class Dashboard(ABC):  # pylint: disable=too-few-public-methods
             kwargs: Keyword arguments to pass to the plot function
         """
         data = self.data_accessor.get_data(self.datasource_name, **kwargs)
+        self._validate_data(data)
+        return self._plot_data(data)
+
+    def plot_dataframe(self, data: pd.DataFrame) -> PlotReturnType:
+        """
+        Function that plots the dashboard using the provided data
+
+        Args:
+            data (pd.DataFrame): Data to plot
+        """
         self._validate_data(data)
         return self._plot_data(data)
 
@@ -112,19 +122,6 @@ class Dashboard(ABC):  # pylint: disable=too-few-public-methods
             "The following columns are missing: "
             f"{set(self._required_data_columns()) - set(data.columns)}"
         )
-
-    def match_plot(self, match_date: pd.Timestamp, team: str) -> PlotReturnType:
-        """
-        Function that plots the dashboard for a specific match and team
-
-        Args:
-            match_date (pd.Timestamp): Date of the match
-            team (str): Team to plot
-
-        Returns:
-            PlotReturnType: Figure and dictionary of Axes of the dashboard
-        """
-        return self._plot(match_date=match_date, team=team)
 
     def describe_adjustable_fields(self) -> Dict[str, str]:
         """
