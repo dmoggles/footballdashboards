@@ -1,35 +1,19 @@
 import pandas as pd
 import numpy as np
 from typing import Dict
+from mplsoccer import add_image
 from mplsoccer.py_pizza import PyPizza
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 from footballdashboards.dashboard.dashboard import Dashboard
 from footballdashboards._types._custom_types import PlotReturnType
-from footballdashboards._types._dashboard_fields import ColorField, FigSizeField
+from footballdashboards._types._dashboard_fields import ColorField, FigSizeField, DashboardField
 from footballdashboards.helpers.fonts import font_normal, font_bold, font_italic
 from footballdashboards.helpers.formatters import full_name_formatter
 from footballdashboards.helpers.matplotlib import get_aspect
-from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService
-
-
-TOP_5_LEAGUES = [
-    "Premier League",
-    "La Liga",
-    "Serie A",
-    "Bundesliga",
-    "Ligue 1",
-]
-NEXT_5_LEAGUES = ["Eredivisie", "Liga Portugal", "Brasilian Serie A", "EFL Championship", "MLS"]
-WOMENS_LEAGUES = [
-    "WSL",
-    "Liga F",
-    "NWSL",
-    "Serie A Femminile",
-    "Frauen Bundesliga",
-    "D1 Feminine",
-    "A League Women",
-]
+from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService, get_ball_logo
+from urllib.request import urlopen
+from PIL import Image
 
 
 class PizzaDashboard(Dashboard):
@@ -41,6 +25,7 @@ class PizzaDashboard(Dashboard):
         description="Straight line colour", default=STRAIGHT_LINE_COLOUR_DEFAULT
     )
     slice_color = ColorField(description="Slice colour", default=SLICE_COLOUR_DEFAULT)
+    center_logo_url = DashboardField(description="URL of the center logo", default=None)
 
     def __init__(self, data_name: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -71,6 +56,7 @@ class PizzaDashboard(Dashboard):
             "Minutes": "Minutes played",
             "Season": "Which season this data is for",
             "Age": "Age of the player",
+            "All Competitions": "All competitions included in the data to which the player was compared",
         }
 
     def _plot_data(self, data: pd.DataFrame) -> PlotReturnType:
@@ -78,11 +64,12 @@ class PizzaDashboard(Dashboard):
         self._plot_pizza(data, axes["pizza"])
         self._plot_title(data, axes["title"])
         self._plot_endnote(data, axes["endnote"])
+        
         return fig, axes
 
     def _plot_title(self, data: pd.DataFrame, ax: Axes) -> Axes:
         ax.text(
-            0.1,
+            0.02,
             1.0,
             full_name_formatter(data["Player"].values[0]),
             ha="left",
@@ -92,9 +79,9 @@ class PizzaDashboard(Dashboard):
             fontsize=18,
         )
         ax.text(
-            0.1,
+            0.02,
             0.4,
-            f"{data['Team'].values[0]} - {data['Competition'].values[0]}",
+            f"{data['Team'].values[0]} - {', '.join([c.strip() for c in data['Competition'].values[0].split(',')])}",
             ha="left",
             va="center",
             fontproperties=font_normal.prop,
@@ -102,7 +89,7 @@ class PizzaDashboard(Dashboard):
             fontsize=12,
         )
         ax.text(
-            0.1,
+            0.02,
             0.0,
             f"Season: {data['Season'].values[0]:.0f}",
             ha="left",
@@ -112,7 +99,7 @@ class PizzaDashboard(Dashboard):
             fontsize=12,
         )
         ax.text(
-            0.8,
+            0.75,
             1.0,
             f"Qual. Minutes: {data['Minutes'].values[0]:.0f}",
             ha="left",
@@ -123,7 +110,7 @@ class PizzaDashboard(Dashboard):
         )
         if data["Age"].values[0] is not None:
             ax.text(
-                0.8,
+                0.75,
                 0.65,
                 f"Age: {data['Age'].values[0]:.0f}",
                 ha="left",
@@ -140,7 +127,7 @@ class PizzaDashboard(Dashboard):
             "AMPizza": "Attacking Midfielder/Winger",
         }[self.datasource_name]
         ax.text(
-            0.8,
+            0.75,
             0.3,
             f"Template: {template_name}",
             ha="left",
@@ -155,7 +142,7 @@ class PizzaDashboard(Dashboard):
                     data["image_league"].values[0], data["image_team"].values[0]
                 )
 
-                inset_ax = ax.inset_axes((0, 0.2, get_aspect(ax) * 0.8, 0.8))
+                inset_ax = ax.inset_axes((-0.08, 0.2, get_aspect(ax) * 0.8, 0.8))
                 inset_ax.axis("off")
 
                 inset_ax.imshow(badge_image)
@@ -175,11 +162,7 @@ class PizzaDashboard(Dashboard):
             fontsize=8,
         )
         try:
-            comparable = next(
-                leagues
-                for leagues in [TOP_5_LEAGUES, NEXT_5_LEAGUES, WOMENS_LEAGUES]
-                if data["Competition"].values[0] in leagues
-            )
+            comparable = [c.strip() for c in data['All Competitions'].values[0].split(",")]
 
             ax.text(
                 -0.1,
@@ -210,6 +193,7 @@ class PizzaDashboard(Dashboard):
                 "Age",
                 "image_team",
                 "image_league",
+                "All Competitions"
             ]
         ]
         values = data[params].values[0]
@@ -250,4 +234,16 @@ class PizzaDashboard(Dashboard):
                 ),
             ),  # values to be used when adding parameter-values
         )
+        if self.center_logo_url:
+            try:
+                img = Image.open(urlopen(self.center_logo_url))
+                ax_insert = ax.inset_axes((0.46, 0.46,0.08, 0.08), zorder=0)
+                ax_insert.axis("off")
+
+                ax_insert.imshow(
+                    img,
+                )
+            except:
+                pass
+
         return ax

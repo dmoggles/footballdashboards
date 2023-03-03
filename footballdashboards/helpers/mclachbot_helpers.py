@@ -47,3 +47,15 @@ class McLachBotBadgeService:
             return Image.open(urlopen(url))
         except HTTPError as exc:
             raise ValueError(f"Team {team} not found in league {league}") from exc
+
+
+def get_ball_logo() -> Image:
+    """
+    Get the imagine for the ball logo from the sportsdb API
+
+    Returns:
+        Image: Image of the ball logo
+
+    """
+    url = "http://www.mclachbot.com/site/img/ball_logo.png"
+    return Image.open(urlopen(url))
