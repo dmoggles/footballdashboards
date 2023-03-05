@@ -39,7 +39,8 @@ class RollingNPxGDashboard(Dashboard):
             'team': 'Team name',
             'league': 'League name',
             'rolling_window': 'size of the rolling window',
-            'normalized': 'whether the npxg data is normalized for league average'
+            'normalized': 'whether the npxg data is normalized for league average',
+            'team_img':'name of the team to use in sportsdb service to retrieve team logo',
         }
     
     def _setup_figure(self):
@@ -88,8 +89,7 @@ class RollingNPxGDashboard(Dashboard):
 
     def _plot_npxg(self, data, ax:Axes):
         team = data['team'].iloc[0]
-        league = data['league'].iloc[0]
-        season= data['season'].iloc[0]
+        
 
 
         self._setup_main_axes(ax)
@@ -140,11 +140,12 @@ class RollingNPxGDashboard(Dashboard):
         league = data['league'].iloc[0]
         season= data['season'].iloc[0]
         team = data['team'].iloc[0]
+        team_img = data['team_img'].iloc[0]
         rolling_window = data['rolling_window'].iloc[0]
         normalized = data['normalized'].iloc[0]
 
         team_logo_axis = ax.inset_axes((0.0, 0.1, 0.8*get_aspect(ax), 0.8), transform=ax.transAxes)
-        team_logo_axis.imshow(McLachBotBadgeService().team_badge(league, team))
+        team_logo_axis.imshow(McLachBotBadgeService().team_badge(league, team_img))
         team_logo_axis.axis('off')
 
         league_logo_axis = ax.inset_axes((1.0-get_aspect(ax)*0.8, 0.1, 0.8*get_aspect(ax), 0.8), transform=ax.transAxes)
