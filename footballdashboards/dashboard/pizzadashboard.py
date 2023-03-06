@@ -8,7 +8,7 @@ from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 from footballdashboards.dashboard.dashboard import Dashboard
 from footballdashboards._types._custom_types import PlotReturnType
-from footballdashboards._types._dashboard_fields import ColorField, FigSizeField, DashboardField
+from footballdashboards._types._dashboard_fields import ColorField, FigSizeField, DashboardField, ColorMapField
 from footballdashboards.helpers.fonts import font_normal, font_bold, font_italic
 from footballdashboards.helpers.formatters import full_name_formatter
 from footballdashboards.helpers.matplotlib import get_aspect
@@ -20,12 +20,12 @@ from PIL import Image
 class PizzaDashboard(Dashboard):
     FIG_SIZE_DEFAULT = (4 * 1.5, 5 * 1.5)
     STRAIGHT_LINE_COLOUR_DEFAULT = "#EBEBE9"
-    SLICE_COLOUR_DEFAULT = "#1A78CF"
+    SLICE_COLORMAP = "coolwarm_r"
     fig_size = FigSizeField(description="Figure size", default=FIG_SIZE_DEFAULT)
     straight_line_color = ColorField(
         description="Straight line colour", default=STRAIGHT_LINE_COLOUR_DEFAULT
     )
-    slice_color = ColorField(description="Slice colour", default=SLICE_COLOUR_DEFAULT)
+    slice_colormap = ColorMapField(description="Slice colour", default=SLICE_COLORMAP)
     center_logo_url = DashboardField(description="URL of the center logo", default=None)
 
     def __init__(self, data_name: str, *args, **kwargs):
@@ -199,6 +199,8 @@ class PizzaDashboard(Dashboard):
             ]
         ]
         values = data[params].values[0]
+        cmap = get_cmap(self.slice_colormap)
+        value_colors = [cmap(v) for v in values]
         values = [int(v) for v in np.round(values * 100, decimals=0)]
         pypizza = PyPizza(
             params=params,
@@ -212,10 +214,10 @@ class PizzaDashboard(Dashboard):
         pypizza.make_pizza(
             values,
             ax=ax,
-            color_blank_space="same",
-            slice_colors=[self.slice_color] * len(params),
+            color_blank_space=['grey']*len(params),
+            slice_colors=value_colors,
             value_colors=[self.textcolor] * len(params),  # color for the value-text
-            value_bck_colors=[self.slice_color] * len(params),  # color for the blank spaces
+            value_bck_colors=value_colors,  # color for the blank spaces
             blank_alpha=0.4,  # alpha for blank-space colors
             kwargs_slices=dict(
                 edgecolor="#F2F2F2", zorder=2, linewidth=1
@@ -254,12 +256,12 @@ class PizzaDashboard(Dashboard):
 class TeamPizzaDashboard(Dashboard):
     FIG_SIZE_DEFAULT = (4 * 1.5, 5 * 1.5)
     STRAIGHT_LINE_COLOUR_DEFAULT = "#EBEBE9"
-    SLICE_COLORMAP = "RdYlGn"
+    SLICE_COLORMAP = "coolwarm_r"
     fig_size = FigSizeField(description="Figure size", default=FIG_SIZE_DEFAULT)
     straight_line_color = ColorField(
         description="Straight line colour", default=STRAIGHT_LINE_COLOUR_DEFAULT
     )
-    slice_colormap = DashboardField(description="Slice colour", default=SLICE_COLORMAP)
+    slice_colormap = ColorMapField(description="Slice colour", default=SLICE_COLORMAP)
     center_logo_url = DashboardField(description="URL of the center logo", default=None)
 
 
