@@ -13,3 +13,4 @@ ipykernel
 pre-commit
 pytest
 git-pylint-commit-hook
+highlight_text

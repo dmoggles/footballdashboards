@@ -15,6 +15,7 @@ from footballdashboards.helpers.matplotlib import get_aspect
 from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService, get_ball_logo
 from urllib.request import urlopen
 from PIL import Image
+from highlight_text import ax_text
 
 
 class PizzaDashboard(Dashboard):
@@ -356,6 +357,8 @@ class TeamPizzaDashboard(Dashboard):
                 inset_ax.imshow(badge_image)
             except:
                 pass
+
+        self._add_inverse_explanation(ax, data)
         return ax
 
     def _plot_endnote(self, data: pd.DataFrame, ax: Axes) -> Axes:
@@ -384,7 +387,8 @@ class TeamPizzaDashboard(Dashboard):
             )
         except:
             pass
-
+        
+        
         return ax
 
     def _plot_pizza(self, data: pd.DataFrame, ax: Axes) -> Axes:
@@ -457,3 +461,20 @@ class TeamPizzaDashboard(Dashboard):
                 pass
 
         return ax
+    
+    def _add_inverse_explanation(self, ax, data):
+        inverse_cols = ['PAdj Fouls Committed', 'PAdj Offsides']
+        actual_inverse_cols = [f"<{c}>" for c in inverse_cols if c in data.columns]
+        if len(actual_inverse_cols) > 0:
+            ax_text(
+                1.08-get_aspect(ax) * 0.8-0.02,
+                0,
+                f"Note: {', '.join(actual_inverse_cols)} are inverted.\nTeams with higher values are better at avoiding these.",
+                ha="right",
+                va="bottom",
+                fontproperties=font_italic.prop,
+                color=self.textcolor,
+                fontsize=8,
+                highlight_textprops=[{"color": "red"} for _ in range(len(actual_inverse_cols))],
+                ax=ax,
+            )
