@@ -302,7 +302,7 @@ class TeamPizzaDashboard(Dashboard):
         ax.text(
             0.02,
             1.0,
-            f"{full_name_formatter(data['Decorated Team'].values[0])} - Team Profile",
+            f"{data['Decorated Team'].values[0]} - Team Profile",
             ha="left",
             va="top",
             fontproperties=font_bold.prop,
