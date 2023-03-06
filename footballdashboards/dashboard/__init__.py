@@ -1,2 +1,2 @@
-from footballdashboards.dashboard.pizzadashboard import PizzaDashboard
+from footballdashboards.dashboard.pizzadashboard import PizzaDashboard, TeamPizzaDashboard
 from footballdashboards.dashboard.rollingnpxgdashboard import RollingNPxGDashboard
