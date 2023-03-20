@@ -1,7 +1,7 @@
 git+http://github.com/dmoggles/mplsoccer
 seaborn
 scikit-learn
-matplotlib==3.6.0
+matplotlib==3.7.1
 tabulate
 cmasher
 jinja2

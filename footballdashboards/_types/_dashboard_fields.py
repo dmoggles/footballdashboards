@@ -96,6 +96,19 @@ class FloatListField(DashboardField):
             raise ValueError("float list field must be a list of floats")
         return value
 
+class PositiveNumField(DashboardField):
+    """
+    Descriptor for positive integer field.
+    Must be an integer greater than 0
+
+    """
+
+    def _set_validate(self, value):
+        if not isinstance(value, (float, int)):
+            raise ValueError("positive int field must be an integer")
+        if value <= 0:
+            raise ValueError("positive int field must be greater than 0")
+        return value
 
 class FontSizeField(DashboardField):
     """
