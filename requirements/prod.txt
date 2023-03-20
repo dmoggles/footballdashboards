@@ -6,3 +6,4 @@ tabulate
 cmasher
 jinja2
 adjustText
+highlight_text
