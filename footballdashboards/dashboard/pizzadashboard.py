@@ -198,7 +198,10 @@ class PizzaDashboard(Dashboard):
                 "image_league",
                 "All Competitions"
             ]
+           and 
+            '__value' not in c
         ]
+        param_value_columns = [f"{p}__value" for p in params]
         values = data[params].values[0]
         cmap = get_cmap(self.slice_colormap)
         value_colors = [cmap(v) for v in values]
@@ -212,8 +215,14 @@ class PizzaDashboard(Dashboard):
             other_circle_lw=0,  # linewidth for other circles
             inner_circle_size=10,  # size of inner circle
         )
+        if set(param_value_columns).issubset(data.columns):
+            text_values = data[param_value_columns].values[0]
+        else:
+            text_values = values
+
         pypizza.make_pizza(
             values,
+            alt_text_values=text_values,
             ax=ax,
             color_blank_space=['grey']*len(params),
             slice_colors=value_colors,
