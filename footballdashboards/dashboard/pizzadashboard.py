@@ -6,9 +6,10 @@ from matplotlib.cm import get_cmap
 from mplsoccer.py_pizza import PyPizza
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
+from matplotlib.projections.polar import PolarAxes
 from footballdashboards.dashboard.dashboard import Dashboard
 from footballdashboards._types._custom_types import PlotReturnType
-from footballdashboards._types._dashboard_fields import ColorField, FigSizeField, DashboardField, ColorMapField
+from footballdashboards._types._dashboard_fields import ColorField, FigSizeField, DashboardField, ColorMapField,NumOfItemsField
 from footballdashboards.helpers.fonts import font_normal, font_bold, font_italic
 from footballdashboards.helpers.formatters import full_name_formatter
 from footballdashboards.helpers.matplotlib import get_aspect
@@ -28,6 +29,7 @@ class PizzaDashboard(Dashboard):
     )
     slice_colormap = ColorMapField(description="Slice colour", default=SLICE_COLORMAP)
     center_logo_url = DashboardField(description="URL of the center logo", default=None)
+    number_of_inner_grid_rings = NumOfItemsField(description="Number of inner grid rings", default=1)
 
     def __init__(self, data_name: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -182,7 +184,7 @@ class PizzaDashboard(Dashboard):
 
         return ax
 
-    def _plot_pizza(self, data: pd.DataFrame, ax: Axes) -> Axes:
+    def _plot_pizza(self, data: pd.DataFrame, ax: PolarAxes) -> Axes:
         params = [
             c
             for c in data.columns
@@ -206,13 +208,15 @@ class PizzaDashboard(Dashboard):
         cmap = get_cmap(self.slice_colormap)
         value_colors = [cmap(v) for v in values]
         values = [int(v) for v in np.round(values * 100, decimals=0)]
+        if self.number_of_inner_grid_rings > 0:
+            ax.set_rgrids(np.linspace(0, 100, self.number_of_inner_grid_rings+2))
         pypizza = PyPizza(
             params=params,
             background_color=self.facecolor,
             straight_line_color=self.straight_line_color,
             straight_line_lw=1,
             last_circle_lw=0,  # linewidth of last circle
-            other_circle_lw=0,  # linewidth for other circles
+            other_circle_lw=1 if self.number_of_inner_grid_rings > 0 else 0,  # linewidth of inner circles
             inner_circle_size=10,  # size of inner circle
         )
         if set(param_value_columns).issubset(data.columns):
@@ -273,7 +277,7 @@ class TeamPizzaDashboard(Dashboard):
     )
     slice_colormap = ColorMapField(description="Slice colour", default=SLICE_COLORMAP)
     center_logo_url = DashboardField(description="URL of the center logo", default=None)
-
+    number_of_inner_grid_rings = NumOfItemsField(description="Number of inner grid rings", default=1)
 
     @property
     def datasource_name(self) -> str:
@@ -400,7 +404,7 @@ class TeamPizzaDashboard(Dashboard):
         
         return ax
 
-    def _plot_pizza(self, data: pd.DataFrame, ax: Axes) -> Axes:
+    def _plot_pizza(self, data: pd.DataFrame, ax: PolarAxes) -> Axes:
         params = [
             c
             for c in data.columns
@@ -429,13 +433,15 @@ class TeamPizzaDashboard(Dashboard):
             text_values = data[param_value_columns].values[0]
         else:
             text_values = values
+        if self.number_of_inner_grid_rings > 0:
+            ax.set_rgrids(np.linspace(0, 100, self.number_of_inner_grid_rings+2))
         pypizza = PyPizza(
             params=params,
             background_color=self.facecolor,
             straight_line_color=self.straight_line_color,
             straight_line_lw=1,
             last_circle_lw=0,  # linewidth of last circle
-            other_circle_lw=0,  # linewidth for other circles
+            other_circle_lw=1 if self.number_of_inner_grid_rings > 0 else 0,  # linewidth for other circles
             inner_circle_size=10,  # size of inner circle
         )
         pypizza.make_pizza(

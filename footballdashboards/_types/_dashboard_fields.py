@@ -129,3 +129,19 @@ class DictField(DashboardField):
         if not all(key in self.acceptable_keys for key in value.keys()):
             raise ValueError(f"dict field must have keys in {self.acceptable_keys}")
         return value
+
+class NumOfItemsField(DashboardField):
+    """
+    Descriptor for number of items field.
+
+    Must be an integer greater than 0
+
+    """
+
+    def _set_validate(self, value):
+        if not isinstance(value, int):
+            raise ValueError("num_of_items must be an integer")
+        if value < 1:
+            raise ValueError("num_of_items must be greater than 0")
+        return value
+    
