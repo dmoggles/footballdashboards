@@ -16,6 +16,7 @@ class SampleDatasource:
     EXAMPLE_DICT = {
         "ScatterDashboard": "scatter_example.csv",
         "ShotPlotDashboard": "messi_shots.csv",
+        'besteleven': "best11_example.csv"
     }
 
     @classmethod
