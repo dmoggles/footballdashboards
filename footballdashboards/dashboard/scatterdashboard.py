@@ -313,6 +313,227 @@ class ScatterDashboard(SeasonLeagueMixin, Dashboard):
         self._plot_endnote(axes[self.ENDNOTE_KEY], data)
         self._plot_scatter(axes[self.SCATTER_KEY], data)
         return fig, axes
+    
+class TeamScatterDashboard(Dashboard):
+    """
+    Base class for scatter dashboards
+    """
+
+    DEFAULT_FIGSIZE = (14, 15.4)
+    TITLE_SIZE = 24
+    SUBTITLE_SIZE = 18
+    COLOR_MARKING_THRESHOLD = 0.4
+    NAME_ANNOTATION_THRESHOLD = 0.2
+    TOP_BOUNDARY_MULT = 1.1
+    BOTTOM_BOUNDARY_MULT = 1.1
+    LEFT_BOUNDARY_MULT = 1.1
+    RIGHT_BOUNDARY_MULT = 1.1
+    GRID_COLOR = "silver"
+    MEAN_LINE_COLOR = "ivory"
+    INNER_DATA_COLOR = "silver"
+    ARROW_COLOR = "darkslategray"
+
+    figsize = FigSizeField(
+        description="Figsize in centimeters, must be tuple (x, y)", default=DEFAULT_FIGSIZE
+    )
+    title_font_size = FontSizeField(description="Title font size in pts", default=TITLE_SIZE)
+    subtitle_font_size = FontSizeField(
+        description="Subtitle font size in pts", default=SUBTITLE_SIZE
+    )
+    color_marking_threshold = DashboardField(
+        description="Percent of points that will be marked with league colour",
+        default=COLOR_MARKING_THRESHOLD,
+    )
+    name_annotation_threshold = DashboardField(
+        description="Percent of points that will be annotated with player names",
+        default=NAME_ANNOTATION_THRESHOLD,
+    )
+    top_boundary_multiplier = DashboardField(
+        description="Multiplier for the top boundary of the plot, it will be extended by to "
+        "(highest_value-mean)*multiplier+mean",
+        default=TOP_BOUNDARY_MULT,
+    )
+    bottom_boundary_multiplier = DashboardField(
+        description="Multiplier for the bottom boundary of the plot, it will be extended by to "
+        "mean-(mean-lowest_value)*multiplier",
+        default=BOTTOM_BOUNDARY_MULT,
+    )
+    left_boundary_multiplier = DashboardField(
+        description="Multiplier for the left boundary of the plot, it will be extended by to "
+        "(lowest_value-mean)*multiplier+mean",
+        default=LEFT_BOUNDARY_MULT,
+    )
+    right_boundary_multiplier = DashboardField(
+        description="Multiplier for the right boundary of the plot, it will be extended by to "
+        "mean-(mean-highest_value)*multiplier",
+        default=RIGHT_BOUNDARY_MULT,
+    )
+    grid_color = ColorField(description="Color of the grid lines", default=GRID_COLOR)
+    inner_data_color = ColorField(
+        description="Color of the inner data points", default=INNER_DATA_COLOR
+    )
+    annotation_arrow_color = ColorField(
+        description="Color of the annotation arrows", default=ARROW_COLOR
+    )
+    same_dimension = DashboardField(
+        description="If true, the plot will be square, otherwise it will be rectangular",
+        default=True,
+    )
+
+    TITLE_KEY = "title"
+    SCATTER_KEY = "scatter"
+    ENDNOTE_KEY = "endnote"
+
+    LEAGUE_COLUMN = "League"
+    TEAM_COLUMN = "Team"
+
+    def __init__(
+        self,
+        data_accessor: _DataAccessor,
+        x_column: str,
+        y_column: str,
+        texts: ScatterTexts,
+        
+    ):  # pylint: disable=too-many-arguments
+        super().__init__(data_accessor)
+
+        self.x_column = x_column
+        self.y_column = y_column
+        self.texts = texts
+
+    @property
+    def datasource_name(self) -> str:
+        return ScatterDashboard.__name__
+
+    def _required_data_columns(self) -> Dict[str, str]:
+        return {
+            self.TEAM_COLUMN: "Team name",
+            self.LEAGUE_COLUMN: "League name",
+            self.x_column: self.x_column,
+            self.y_column: self.y_column,
+        }
+
+    def _init_fig(self) -> PlotReturnType:
+        fig = plt.figure(figsize=self.figsize)
+        fig.set_facecolor(self.facecolor)
+        axes = {
+            k: v
+            for k, v in zip(
+                [self.TITLE_KEY, self.SCATTER_KEY, self.ENDNOTE_KEY],
+                fig.subplots(nrows=3, height_ratios=[0.05, 0.9, 0.05]),
+            )
+        }
+        for axis in axes.values():
+            axis.set_facecolor(self.facecolor)
+        for ax_idx in [self.TITLE_KEY, self.ENDNOTE_KEY]:
+            axes[ax_idx].axis("off")
+            axes[ax_idx].set_xlim(0, 1)
+            axes[ax_idx].set_ylim(0, 1)
+        return fig, axes
+
+    def _setup_scatter_axes(self, axis: Axes, data: pd.DataFrame):
+        max_y = (
+            data[self.y_column].max() - data[self.y_column].mean()
+        ) * self.top_boundary_multiplier + data[self.y_column].mean()
+        min_y = (
+            data[self.y_column].mean()
+            - (data[self.y_column].mean() - data[self.y_column].min())
+            * self.bottom_boundary_multiplier
+        )
+        max_x = (
+            data[self.x_column].max() - data[self.x_column].mean()
+        ) * self.right_boundary_multiplier + data[self.x_column].mean()
+        min_x = (
+            data[self.x_column].mean()
+            - (data[self.x_column].mean() - data[self.x_column].min())
+            * self.left_boundary_multiplier
+        )
+        if self.same_dimension:
+            max_y = max(max_y, max_x)
+            min_y = min(min_y, min_x)
+            max_x = max(max_y, max_x)
+            min_x = min(min_y, min_x)
+        axis.set_ylim(min_y, max_y)
+        axis.set_xlim(min_x, max_x)
+        axis.grid(color=self.grid_color, linestyle="--", linewidth=0.5, alpha=0.5)
+        axis.set_xlabel(self.x_column, fontproperties=font_normal.prop, size=16)
+        axis.set_ylabel(self.y_column, fontproperties=font_normal.prop, size=16)
+        for label in axis.get_xticklabels():
+            label.set_fontproperties(font_normal.prop)
+
+        for label in axis.get_yticklabels():
+            label.set_fontproperties(font_normal.prop)
+
+    def _draw_title(self, axis: Axes):
+        simple_title_subtitle_header(
+            axis,
+            self.texts.title,
+            self.texts.subtitle,
+            title_kwargs={"size": self.title_font_size},
+            subtitle_kwargs={"size": self.subtitle_font_size},
+        )
+
+    
+   
+
+    def _plot_scatter(self, axis: Axes, data: pd.DataFrame):
+        x_width = axis.get_xlim()[1] - axis.get_xlim()[0]
+        y_width = axis.get_ylim()[1] - axis.get_ylim()[0]
+        aspect = x_width / y_width
+        for _, row in data.iterrows():
+
+            insert_axis = axis.inset_axes(
+                [
+                    row[self.x_column]-0.015*x_width,
+                    row[self.y_column]-0.015*y_width,
+                    0.03*x_width,
+                    0.03*y_width,
+                ],
+                transform=axis.transData
+            )
+            insert_axis.axis("off")
+            team_name = row[self.TEAM_COLUMN]
+            league_name = row[self.LEAGUE_COLUMN]
+            image = self.badge_service.team_badge(league_name, team_name)
+            insert_axis.imshow(image)
+
+    def _write_endnote_annotation(self, axis: Axes):
+        if self.texts.explanatory_text:
+            axis.text(
+                0.01,
+                1.1,
+                self.texts.explanatory_text,
+                size=10,
+                ha="left",
+                va="bottom",
+                fontproperties=font_italic.prop,
+            )
+
+    def _write_watermark(self, axis: Axes):
+        if self.watermark:
+            axis.text(
+                0.99,
+                0.5,
+                self.watermark,
+                size=10,
+                va="center",
+                ha="center",
+                fontproperties=font_normal.prop,
+            )
+
+    def _plot_endnote(self, axis: Axes, data: pd.DataFrame):
+        self._write_endnote_annotation(axis)
+        self._write_watermark(axis)
+
+    def _plot_data(self, data: pd.DataFrame) -> PlotReturnType:
+        fig, axes = self._init_fig()
+
+        
+        self._draw_title(axes[self.TITLE_KEY])
+        self._setup_scatter_axes(axes[self.SCATTER_KEY], data)
+        self._plot_endnote(axes[self.ENDNOTE_KEY], data)
+        self._plot_scatter(axes[self.SCATTER_KEY], data)
+        return fig, axes
 
 
 class ScatterWithQuadrantsDashboard(ScatterDashboard):
@@ -519,3 +740,94 @@ class ScatterWithRegressionDashboard(ScatterDashboard):
         self._draw_regression_and_fan(axes[self.SCATTER_KEY], data)
         self._annotate_regression(axes[self.SCATTER_KEY])
         return fig, axes
+
+
+
+class TeamScatterWithRegressionDashboard(TeamScatterDashboard):
+    """A dashboard that plots a scatter plot with a regression line
+    and a colorfan indicating distance from regression line
+    """
+
+    REGRESSION_LINE_COLOR = "black"
+    FAN_COLORMAP = "RdYlGn"
+    REGRESSION_ANNOTATION_LOCATIONS = {
+        "topleft": {"x": 0.01, "y": 0.99, "va": "top", "ha": "left"},
+        "bottomright": {"x": 0.99, "y": 0.01, "va": "bottom", "ha": "right"},
+    }
+
+    regression_line_color = ColorField(
+        description="Color of the regression line", default=REGRESSION_LINE_COLOR
+    )
+    regression_fan_multipliers = FloatListField(
+        description="Multipliers for the regression slope line which"
+        " are used to separate into different color sections",
+        default=[1.6, 1.3, 1.0, 1 / 1.3, 1 / 1.6],
+    )
+    regression_fan_colormap = ColorMapField(
+        description="Matplotlib colormap name for the regression fan", default=FAN_COLORMAP
+    )
+    regression_annotation_texts = DictField(
+        description="Texts to be displayed in the regression fan,"
+        " one for the best triangle and one for the worst",
+        acceptable_keys=["topleft", "bottomright"],
+    )
+
+    def _draw_regression_and_fan(self, axis: Axes, data: pd.DataFrame):
+        cmap = get_cmap(self.regression_fan_colormap)
+        poly_params = np.polyfit([1,2,3],[1,2,3], 1)
+        x_values = [axis.get_xlim()[0], axis.get_xlim()[1]]
+        reg_line = np.poly1d(poly_params)
+        mults = sorted(self.regression_fan_multipliers)
+        axis.plot(x_values, reg_line(x_values), color=self.regression_line_color, zorder=1, lw=2)
+        for i, coef in enumerate(mults):
+            poly = np.poly1d([poly_params[0] * coef, poly_params[1]])
+            if i == 0:
+                axis.fill_between(
+                    x_values,
+                    poly(x_values),
+                    np.ones(len(x_values)) * axis.get_ylim()[0],
+                    color=cmap(0.0),
+                    alpha=0.1,
+                    zorder=0.9,
+                )
+
+            else:
+                p_prev = np.poly1d([poly_params[0] * mults[i - 1], poly_params[1]])
+                axis.fill_between(
+                    x_values,
+                    poly(x_values),
+                    p_prev(x_values),
+                    color=cmap(i / (len(mults) + 1)),
+                    alpha=0.1,
+                    zorder=0.9,
+                )
+
+        axis.fill_between(
+            x_values,
+            poly(x_values),
+            np.ones(len(x_values)) * axis.get_ylim()[1],
+            color=cmap(1.0),
+            alpha=0.1,
+            zorder=0.9,
+        )
+
+    def _annotate_regression(self, axis: Axes):
+        props = dict(boxstyle="round", facecolor=self.facecolor, alpha=1)
+        for loc, annotation in self.regression_annotation_texts.items():
+            placement = self.REGRESSION_ANNOTATION_LOCATIONS[loc]
+            axis.text(
+                s=annotation,
+                transform=axis.transAxes,
+                bbox=props,
+                fontproperties=font_normal.prop,
+                size=12,
+                **placement,
+                zorder=6
+            )
+
+    def _plot_data(self, data: pd.DataFrame) -> PlotReturnType:
+        fig, axes = super()._plot_data(data)
+        self._draw_regression_and_fan(axes[self.SCATTER_KEY], data)
+        self._annotate_regression(axes[self.SCATTER_KEY])
+        return fig, axes
+
