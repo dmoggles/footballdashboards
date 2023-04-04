@@ -20,6 +20,7 @@ class BestElevenDashboard(Dashboard):
     linecolor = ColorField(description="Pitch line colour", default="#000000")
     textcolor = ColorField(description="Text colour", default="#000000")
     title = DashboardField(description="Title", default="Best Eleven")
+    league_logo_background_color = ColorField(description="League logo background colour", default=None)
 
     def __init__(self, data_accessor):
         super().__init__(data_accessor)
@@ -95,7 +96,7 @@ class BestElevenDashboard(Dashboard):
             length=target_height,
             ax=ax,
         )
-        ax_img.set_facecolor(self.facecolor)
+        ax_img.set_facecolor(self.league_logo_background_color or self.facecolor)
         set_visible(ax_img)
         ax_img.imshow(league_image)
     
@@ -435,6 +436,7 @@ class BestElevenDashboard(Dashboard):
             "Psxg": "PSxG Overperformance",
             "Crosses Stopped Gk": "Crosses Claimed",
             " P90":"",
+            "Aerials Won":"Headers Won"
         }
         no_number_categories = [
             "clean_sheets",
