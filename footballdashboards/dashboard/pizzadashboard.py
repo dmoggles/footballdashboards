@@ -129,6 +129,7 @@ class PizzaDashboard(Dashboard):
             "FBPizza": "Full Back",
             "FWPizza": "Forward",
             "AMPizza": "Attacking Midfielder/Winger",
+            "ATTPizza": "Combined Fwd/AM",
             "GKPizza": "Goalkeeper",
         }[self.datasource_name]
         ax.text(
