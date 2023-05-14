@@ -429,6 +429,7 @@ class BestElevenDashboard(Dashboard):
         display_category = category.replace("_", " ").title()
         replacements = {
             "Passes Into Penalty Area": "Passes Into Box",
+            'Crosses Into Penalty Area': 'Crosses Into Box',
             "Passes Progressive Distance":"Prog Pass Dist",
             "Passes Into Final Third": "Passes Into Att 1/3",
             "Progressive Passes": "Prog Passes",
