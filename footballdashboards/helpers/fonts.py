@@ -53,3 +53,6 @@ font_bold = FontManagerLocal(
 font_mono = FontManagerLocal(
     get_path("roboto_mono.ttf"),
 )
+font_varsity = FontManagerLocal(
+    get_path("VarsityTeam-Bold.otf"),
+)

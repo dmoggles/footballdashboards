@@ -1,4 +1,5 @@
 git+http://github.com/dmoggles/mplsoccer
+git+http://github.com/dmoggles/footmav
 seaborn
 scikit-learn
 matplotlib==3.6.0
@@ -7,3 +8,4 @@ cmasher
 jinja2
 adjustText
 highlight_text
+matplotlib_table
