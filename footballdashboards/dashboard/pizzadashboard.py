@@ -131,6 +131,7 @@ class PizzaDashboard(Dashboard):
             "AMPizza": "Attacking Midfielder/Winger",
             "ATTPizza": "Combined Fwd/AM",
             "GKPizza": "Goalkeeper",
+            'TargetmanPizza': 'Targetman Forward'
         }[self.datasource_name]
         ax.text(
             0.75,
