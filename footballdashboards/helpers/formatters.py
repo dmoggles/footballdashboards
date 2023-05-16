@@ -46,7 +46,7 @@ def add_ordinal_suffix(day):
 
 
 def format_date(date):
-    date_str = date.strftime("%B ") + add_ordinal_suffix(date.day) + date.strftime(", %Y")
+    date_str = date.strftime("%A, %B ") + add_ordinal_suffix(date.day) + date.strftime(", %Y")
 
     return date_str
 

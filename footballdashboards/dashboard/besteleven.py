@@ -11,6 +11,7 @@ from footballdashboards._types._dashboard_fields import DashboardField, ColorFie
 from footballdashboards.helpers.fonts import font_bold, font_italic, font_normal
 from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService
 from PIL.PngImagePlugin import PngImageFile
+from footballdashboards.helpers.matplotlib import get_aspect
 from highlight_text import ax_text
 from footballdashboards.helpers.mclachbot_helpers import get_ball_logo
 
@@ -142,7 +143,8 @@ class BestElevenDashboard(Dashboard):
             va="center",
             fontproperties=font_normal.prop,
         )
-        diamond_inset = pitch.inset_axes(0.5, 0.35, length=0.8, aspect=1, ax=ax)
+        aspect = np.power(1 / get_aspect(ax), 2)
+        diamond_inset = pitch.inset_axes(0.5, 0.35, length=0.8, aspect=aspect, ax=ax)
         self._draw_diamond(diamond_inset, 0.6, 0.6, 0.6, 0.6)
         ax.text(
             0.305,
@@ -189,7 +191,7 @@ class BestElevenDashboard(Dashboard):
             fontproperties=font_normal.prop,
         )
 
-        triange_inset = pitch.inset_axes(0.5, 0.65, length=0.8, aspect=1, ax=ax)
+        triange_inset = pitch.inset_axes(0.5, 0.65, length=0.8, aspect=aspect, ax=ax)
         self._draw_equalateral_triangle(triange_inset, 0.6, 0.6, 0.6)
         ax.text(
             0.65,
@@ -322,7 +324,8 @@ class BestElevenDashboard(Dashboard):
         self, data, pitch: VerticalPitch, ax: Axes, team_badges: Dict[str, PngImageFile]
     ):
         formation = data['formation'].iloc[0]
-        positions_axes = pitch.inset_formation_axes(formation, length=12, aspect=1, ax=ax)
+        aspect = np.power(1/get_aspect(ax),2)
+        positions_axes = pitch.inset_formation_axes(formation, length=12, aspect=aspect, ax=ax)
         for position, ax_inner in positions_axes.items():
             self._draw_one_position(data, pitch, ax_inner, position, team_badges)
         ax_text(

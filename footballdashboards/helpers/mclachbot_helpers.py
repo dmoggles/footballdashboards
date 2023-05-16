@@ -63,7 +63,16 @@ def get_ball_logo() -> Image:
     url = "http://www.mclachbot.com/site/img/ball_logo.png"
     return Image.open(urlopen(url))
 
+def get_ball_logo2()-> Image:
+    """
+    Get the imagine for the ball logo from the sportsdb API
 
+    Returns:
+        Image: Image of the ball logo
+
+    """
+    url = "http://www.mclachbot.com/site/img/mclachbot_logo.png"
+    return Image.open(urlopen(url))
 
 class TeamColorHelper:
 

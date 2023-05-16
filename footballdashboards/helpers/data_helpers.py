@@ -9,6 +9,7 @@ def lineup_card(data):
         .first()
         .reset_index()
     )
+    lineup_card['position']=lineup_card['position'].apply(lambda x: x if x not in ['RCDM','LCDM','RCAM','LCAM'] else x.replace('C',''))
     lineup_card = lineup_card.loc[lineup_card["shirt_number"] != -1]
     subs = (
         data.loc[data["event_type"] == EventType.SubstitutionOn][

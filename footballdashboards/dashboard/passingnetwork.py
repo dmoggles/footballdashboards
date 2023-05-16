@@ -15,7 +15,7 @@ from matplotlib.colorbar import Colorbar
 from matplotlib.colors import Normalize
 from footballdashboards.helpers.matplotlib import get_aspect
 from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService
-from footballdashboards.helpers.fonts import font_bold, font_normal, font_varsity, font_italic
+from footballdashboards.helpers.fonts import font_bold, font_normal, font_varsity, font_italic, font_mono
 import colorsys
 import matplotlib
 import datetime as dt
@@ -26,12 +26,15 @@ from mpltable import Table
 from footballdashboards.helpers import utils
 from footballdashboards.helpers import formatters
 from footballdashboards.helpers.data_helpers import lineup_card
-from footballdashboards.helpers.mclachbot_helpers import get_ball_logo
+from footballdashboards.helpers.mclachbot_helpers import get_ball_logo2
+from matplotlib.patches import FancyBboxPatch
 
 
 class PassNetworkDashboard(Dashboard):
+    
     figsize = FigSizeField("Size of the dashboard", default=(10, 13))
     linecolor = ColorField("Color of the pitch lines", default="#000000")
+    secondary_textcolor = ColorField("Secondary text color", default="#666666")
     min_pass_to_show = DashboardField("Minimum number of passes to show", default=5)
     MINSIZE = 200
     MAXSIZE = 1000
@@ -39,6 +42,42 @@ class PassNetworkDashboard(Dashboard):
     MAX_PASS_SIZE = 15
     MAX_PASS_QTY = 50
     MAX_PASS_XT = 0.04
+
+
+    def _get_touch_events(self, data):
+        touch_events = [
+            2,
+            3,
+            7,
+            8,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            41,
+            42,
+            44,
+            45,
+            49,
+            50,
+            54,
+            61,
+            74,
+        ]
+        touch_events = [EventType(e) for e in touch_events] + [EventType.Carry]
+
+        total_touches = data.loc[
+            (data["event_type"].isin(touch_events))
+            | ((data["event_type"] == EventType.Foul) & (data["outcomeType"] == 1))
+            | (
+                ((data["event_type"] == EventType.Pass) | (data["event_type"] == EventType.OffsidePass))
+                & ~(WF.col_has_qualifier(data, qualifier_code=6) | WF.col_has_qualifier(data, display_name="ThrowIn"))
+            )  # excludes corners and throw-ins
+        ].copy()
+        return total_touches
 
     def _required_data_columns(self) -> Dict[str, str]:
         return {}
@@ -73,20 +112,10 @@ class PassNetworkDashboard(Dashboard):
             line_alpha=0.5,
         )
         pitch.draw(ax=ax)
-        logo_ax = pitch.inset_axes(6, 4 / 68 * 105, 7, aspect=1, ax=ax)
+        logo_ax = pitch.inset_axes(6, 6/65*105 , 11,11/65*105, ax=ax, zorder=200)
         logo_ax.axis("off")
-        logo_ax.imshow(get_ball_logo())
-        pitch.annotate(
-            "@mclachbot",
-            (0.5, 4 / 68 * 105),
-            ax=ax,
-            color=self.linecolor,
-            size=8,
-            va="bottom",
-            ha="center",
-            fontproperties=font_normal.prop,
-            alpha=0.5,
-        )
+        logo_ax.imshow(get_ball_logo2())
+        
         return pitch
 
     def _plot_touches(
@@ -106,6 +135,8 @@ class PassNetworkDashboard(Dashboard):
             lw=1,
         )
         for i, row in data.iterrows():
+            if i in ['RCDM','LCDM','RCAM','LCAM']:
+                i = i.replace('C','')
             pitch.annotate(
                 i,
                 (row["x"], row["y"]),
@@ -186,53 +217,97 @@ class PassNetworkDashboard(Dashboard):
 
     def _plot_title(self, data: pd.DataFrame, ax: Axes):
         non_carry = data.loc[data["event_type"] != EventType.Carry]
-        league = non_carry.iloc[0]["competition"]
+        # league = non_carry.iloc[0]["competition"]
         date = non_carry.iloc[0]["match_date"]
         league = non_carry.iloc[0]["decorated_league_name"]
+        dec_team = non_carry.iloc[0]["decorated_team_name"]
+        dec_opponent = non_carry.iloc[0]["decorated_opponent_name"]
         team = non_carry.iloc[0]["team"]
         opponent = non_carry.iloc[0]["opponent"]
-        formation = non_carry.iloc[0]["formation"]
+        team_score = int(
+            non_carry.iloc[0]["home_score"]
+            if non_carry.iloc[0]["is_home_team"]
+            else non_carry.iloc[0]["away_score"]
+        )
+        opponent_score = int(
+            non_carry.iloc[0]["away_score"]
+            if non_carry.iloc[0]["is_home_team"]
+            else non_carry.iloc[0]["home_score"]
+        )
 
-        for side in ["left", "right"]:
-            self._plot_score_box(data, ax, side)
-        left_logo_ax = ax.inset_axes((0.03 + get_aspect(ax), 0.0, get_aspect(ax), 1))
-        right_logo_ax = ax.inset_axes((0.97 - 2 * get_aspect(ax), 0.0, get_aspect(ax), 1))
-        left_logo_ax.axis("off")
-        left_logo_ax.imshow(McLachBotBadgeService().team_badge(league, team))
-        right_logo_ax.axis("off")
-        right_logo_ax.imshow(McLachBotBadgeService().team_badge(league, opponent))
-        ax.text(
-            0.26,
-            1,
-            f"League: {league}",
-            va="top",
-            ha="left",
-            size=16,
-            fontproperties=font_normal.prop,
-            color=self.linecolor,
+        # Create a rounded bounding box patch
+        aspect = get_aspect(ax)
+        ax.set_xlim(0, 1)
+        y_max = 1 * aspect
+        ax.set_ylim(0, y_max)
+        rounded_bbox = FancyBboxPatch(
+            (0.02, 0.02),
+            0.96,
+            y_max - 0.04,
+            boxstyle="round,pad=0.02",
+            ec=self.linecolor,
+            fc=self.facecolor,
+            zorder=100,
+            transform=ax.transData,
+            lw=2,
         )
         ax.text(
-            0.26,
-            0.65,
-            f"Date: {formatters.format_date(date)}",
+            x=0.5,
+            y=y_max * 0.95,
+            s=formatters.format_date(date),
+            ha="center",
             va="top",
-            ha="left",
-            size=16,
+            size=10,
             fontproperties=font_normal.prop,
-            color=self.linecolor,
+            color=self.secondary_textcolor,
+            zorder=101,
         )
         ax.text(
-            0.26,
-            0.3,
-            f"Formation: {formation}",
-            va="top",
-            ha="left",
-            size=16,
+            x=0.5,
+            y=y_max * 0.05,
+            s=f"{league} ({'Home' if non_carry.iloc[0]['is_home_team'] else 'Away'})",
+            ha="center",
+            va="bottom",
+            size=10,
             fontproperties=font_normal.prop,
-            color=self.linecolor,
+            color=self.secondary_textcolor,
+            zorder=101,
         )
+        ax.text(
+            x=0.5,
+            y=y_max * 0.5,
+            s=f"{team_score} - {opponent_score}",
+            ha="center",
+            va="center",
+            size=20,
+            fontproperties=font_mono.prop,
+            color=self.linecolor,
+            zorder=101,
+        )
+        ax.text(
+            x = 0.11, y=y_max * 0.5, s=dec_team, ha="left", va="center", size=16, fontproperties=font_bold.prop, color=self.linecolor, zorder=101
+        )
+        ax.text(
+            x = 0.89, y=y_max * 0.5, s=dec_opponent, ha="right", va="center", size=16, fontproperties=font_bold.prop, color=self.linecolor, zorder=101
+        )
+        team_ax = ax.inset_axes((0.02, 0.04, aspect* 0.92, 0.92), zorder=200)
+        team_ax.axis("off")
+        team_ax.imshow(McLachBotBadgeService().team_badge(league, team))
+        opponent_ax = ax.inset_axes((1-0.02-aspect* 0.92, 0.04, aspect* 0.92, 0.92), zorder=200)
+        opponent_ax.axis("off")
+        opponent_ax.imshow(McLachBotBadgeService().team_badge(league, opponent))
+        # Add the rounded bbox patch to the axes
+        ax.add_patch(rounded_bbox)
+        
+
+
+        
 
     def _plot_data(self, data: pd.DataFrame) -> PlotReturnType:
+        non_carry = data.loc[data["event_type"] != EventType.Carry]
+        league = non_carry.iloc[0]["competition"]
+        team = non_carry.iloc[0]["team"]
+        formation = non_carry.iloc[0]["formation"]
         fig, axes = self._setup_plot()
         pitch = self._setup_pitch(axes["pitch"])
         average_pos = self._get_average_touch_positions_and_count(data, "position")
@@ -252,11 +327,37 @@ class PassNetworkDashboard(Dashboard):
             fontproperties=font_italic.prop,
             alpha=0.5,
         )
+        if data['filters'].iloc[0]:
+            pitch.annotate(
+                data.iloc[0]['filters'],
+                (95, 99),
+                ax=axes["pitch"],
+                color=self.linecolor,
+                size=8,
+                ha="left",
+                va="top",
+                fontproperties=font_italic.prop,
+                alpha=0.8,
+            )
+
+
         self._plot_touches(pitch, average_pos, axes["pitch"], colors)
         self._plot_pass_pairings(pitch, pass_pairings, axes["pitch"])
         self._plot_title(data, axes["header"])
         self._plot_endnote(data, axes["endnote"])
         self._plot_sidebar(data, axes["sidebar"])
+        small_pitch_ax = pitch.inset_axes(95, 5, 9, 9, ax=axes['pitch'], zorder=300)
+        small_pitch = VerticalPitch('opta', pitch_color=self.facecolor, line_color=self.linecolor, linewidth=1, line_alpha=0.5)
+        small_pitch.draw(small_pitch_ax)
+        positions_dict = small_pitch.get_formation(formation)
+        try:
+            color = TeamColorHelper().get_colours(league, team)[0]
+        except:
+            color = 'black'
+        for position in positions_dict:
+            x, y = positions_dict[position].x, positions_dict[position].y
+            small_pitch.scatter(x, y, color=color, s=30, ax=small_pitch_ax)
+           
 
         return fig, axes
 
@@ -315,6 +416,7 @@ class PassNetworkDashboard(Dashboard):
         self._plot_lineups(data, ax)
 
     def _get_average_touch_positions_and_count(self, data: pd.DataFrame, aggregation_variable: str):
+        data = self._get_touch_events(data)
         return (
             data.groupby(aggregation_variable)
             .agg({"x": "mean", "y": "mean", "id": "count"})
@@ -365,11 +467,19 @@ class PassNetworkDashboard(Dashboard):
             "\nLine thickness indicates number of passes between players"
             "\nLine color indicates average xT of passes between players"
         )
-        ax.text(0.25, 1, instruction_text, ha="left", va="top", size=8, color=self.linecolor, fontproperties=font_italic.prop)
+        ax.text(
+            0.25,
+            1,
+            instruction_text,
+            ha="left",
+            va="top",
+            size=8,
+            color=self.linecolor,
+            fontproperties=font_italic.prop,
+        )
 
     def _pass_attempted_table(self, data, ax):
         def _f(data):
-
             return (
                 data.loc[data["event_type"].isin([EventType.Pass, EventType.BlockedPass])]
                 .groupby(["shirt_number", "player_name"])
