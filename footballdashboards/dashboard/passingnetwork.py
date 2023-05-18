@@ -124,17 +124,18 @@ class PassNetworkDashboard(Dashboard):
         data["size"] = data["count"].apply(
             lambda x: self.MINSIZE + (x / self.MAX_TOUCH_QTY) * (self.MAXSIZE - self.MINSIZE)
         )
-        pitch.scatter(
-            data.x,
-            data.y,
-            ax=ax,
-            s=data["size"],
-            color=colors[0],
-            zorder=10,
-            ec=self.linecolor,
-            lw=1,
-        )
+        
         for i, row in data.iterrows():
+            pitch.scatter(
+                row['x'],
+                row['y'],
+                ax=ax,
+                s=row["size"],
+                color=colors[0],
+                zorder=11,
+                ec=self.linecolor,
+                lw=1,
+            )   
             if i in ['RCDM','LCDM','RCAM','LCAM']:
                 i = i.replace('C','')
             pitch.annotate(
@@ -424,7 +425,7 @@ class PassNetworkDashboard(Dashboard):
         )
 
     def _get_pass_pairings(self, data: pd.DataFrame, aggregation_variable: str):
-        data = data[(data["event_type"] == EventType.Pass) & data["outcomeType"] == 1].copy()
+        data = data[(data["event_type"] == EventType.Pass) & (data["outcomeType"] == 1) & (~data['pass_receiver_position'].isna())].copy()
 
         if aggregation_variable == "position":
             for i, r in data.iterrows():
