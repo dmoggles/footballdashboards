@@ -15,7 +15,7 @@ from mplsoccer import Radar
 from urllib.request import urlopen
 from PIL import Image
 import numpy as np
-from footballdashboards.helpers.formatters import full_name_formatter
+from footballdashboards.helpers.formatters import smart_name_formatter, full_name_formatter
 from footballdashboards.helpers.matplotlib import get_aspect
 from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService
 
@@ -158,7 +158,9 @@ class RadarDashboard(Dashboard):
         ax.text(
             0.01 + get_aspect(ax),
             1.0,
-            full_name_formatter(player_1_name),
+            smart_name_formatter(player_1_name)
+            if len(player_1_name) > 18
+            else full_name_formatter(player_1_name),
             ha="left",
             va="top",
             color=self.radar_colors[0],
@@ -169,7 +171,9 @@ class RadarDashboard(Dashboard):
         ax.text(
             0.99 - get_aspect(ax),
             1.0,
-            full_name_formatter(player_2_name),
+            smart_name_formatter(player_2_name)
+            if len(player_2_name) > 18
+            else full_name_formatter(player_2_name),
             ha="right",
             va="top",
             color=self.radar_colors[1],
