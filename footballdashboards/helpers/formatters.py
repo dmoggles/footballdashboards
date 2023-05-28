@@ -79,3 +79,9 @@ def smart_name_formatter(name):
         return f"{tokens[0][0].upper()}. {tokens[1].title()}"
     else:
         return "".join([t[0].upper() if t not in particles else t[0].lower() for t in tokens])
+
+
+def length_based_name_formatter(name, length_limit=20):
+    if len(name) > length_limit:
+        return smart_name_formatter(name)
+    return full_name_formatter(name)
