@@ -53,7 +53,7 @@ class McLachBotBadgeService:
             raise ValueError(f"Team {team} not found in league {league}") from exc
 
 
-def get_ball_logo() -> Image:
+def get_ball_logo(url: str = "http://www.mclachbot.com/site/img/ball_logo.png") -> Image:
     """
     Get the imagine for the ball logo from the sportsdb API
 
@@ -61,11 +61,10 @@ def get_ball_logo() -> Image:
         Image: Image of the ball logo
 
     """
-    url = "http://www.mclachbot.com/site/img/ball_logo.png"
     return Image.open(urlopen(url))
 
 
-def get_ball_logo2() -> Image:
+def get_ball_logo2(url: str = "http://www.mclachbot.com/site/img/mclachbot_logo.png") -> Image:
     """
     Get the imagine for the ball logo from the sportsdb API
 
@@ -73,12 +72,21 @@ def get_ball_logo2() -> Image:
         Image: Image of the ball logo
 
     """
-    url = "http://www.mclachbot.com/site/img/mclachbot_logo.png"
+    return Image.open(urlopen(url))
+
+
+def get_image(url: str) -> Image:
+    """
+    Get the image
+
+    Returns:
+        Image: Image
+
+    """
     return Image.open(urlopen(url))
 
 
 class TeamColorHelper:
-
     url = "http://www.mclachbot.com:9000"
 
     default_colours = ["#bbbbbb", "#000000"]

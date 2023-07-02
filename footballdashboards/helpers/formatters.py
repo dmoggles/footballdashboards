@@ -85,3 +85,21 @@ def length_based_name_formatter(name, length_limit=20):
     if len(name) > length_limit:
         return smart_name_formatter(name)
     return full_name_formatter(name)
+
+
+def simplified_opta_position(position: str):
+    if position in ["CB", "RCB", "LCB"]:
+        return "CB"
+    if position in ["LB", "RB", "LWB", "RWB"]:
+        return "FB"
+    if position in ["CDM", "LCDM", "RCDM"]:
+        return "DM"
+    if position in ["CM", "LCM", "RCM"]:
+        return "CM"
+    if position in ["CAM", "LCAM", "RCAM", "SS"]:
+        return "AM"
+    if position in ["LWF", "RWF", "LM", "RM"]:
+        return "W"
+    if position in ["CF", "LF", "RF"]:
+        return "ST"
+    return position
