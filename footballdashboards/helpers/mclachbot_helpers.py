@@ -8,6 +8,7 @@ from urllib.error import HTTPError
 import requests
 import json
 
+
 class McLachBotBadgeService:
     url = "http://www.mclachbot.com:9000"
 
@@ -63,7 +64,8 @@ def get_ball_logo() -> Image:
     url = "http://www.mclachbot.com/site/img/ball_logo.png"
     return Image.open(urlopen(url))
 
-def get_ball_logo2()-> Image:
+
+def get_ball_logo2() -> Image:
     """
     Get the imagine for the ball logo from the sportsdb API
 
@@ -74,14 +76,14 @@ def get_ball_logo2()-> Image:
     url = "http://www.mclachbot.com/site/img/mclachbot_logo.png"
     return Image.open(urlopen(url))
 
+
 class TeamColorHelper:
 
     url = "http://www.mclachbot.com:9000"
 
     default_colours = ["#bbbbbb", "#000000"]
 
-
-    def get_colours(self, league:str, team:str):
+    def get_colours(self, league: str, team: str):
         league = league.replace(" ", "%20")
         team = team.replace(" ", "%20")
         full_url = f"{self.url}/colours/{league}/{team}"

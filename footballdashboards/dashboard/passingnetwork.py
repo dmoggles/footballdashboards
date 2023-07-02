@@ -15,7 +15,13 @@ from matplotlib.colorbar import Colorbar
 from matplotlib.colors import Normalize
 from footballdashboards.helpers.matplotlib import get_aspect
 from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService
-from footballdashboards.helpers.fonts import font_bold, font_normal, font_varsity, font_italic, font_mono
+from footballdashboards.helpers.fonts import (
+    font_bold,
+    font_normal,
+    font_varsity,
+    font_italic,
+    font_mono,
+)
 import colorsys
 import matplotlib
 import datetime as dt
@@ -31,7 +37,6 @@ from matplotlib.patches import FancyBboxPatch
 
 
 class PassNetworkDashboard(Dashboard):
-    
     figsize = FigSizeField("Size of the dashboard", default=(10, 13))
     linecolor = ColorField("Color of the pitch lines", default="#000000")
     secondary_textcolor = ColorField("Secondary text color", default="#666666")
@@ -42,7 +47,6 @@ class PassNetworkDashboard(Dashboard):
     MAX_PASS_SIZE = 15
     MAX_PASS_QTY = 50
     MAX_PASS_XT = 0.04
-
 
     def _get_touch_events(self, data):
         touch_events = [
@@ -73,8 +77,14 @@ class PassNetworkDashboard(Dashboard):
             (data["event_type"].isin(touch_events))
             | ((data["event_type"] == EventType.Foul) & (data["outcomeType"] == 1))
             | (
-                ((data["event_type"] == EventType.Pass) | (data["event_type"] == EventType.OffsidePass))
-                & ~(WF.col_has_qualifier(data, qualifier_code=6) | WF.col_has_qualifier(data, display_name="ThrowIn"))
+                (
+                    (data["event_type"] == EventType.Pass)
+                    | (data["event_type"] == EventType.OffsidePass)
+                )
+                & ~(
+                    WF.col_has_qualifier(data, qualifier_code=6)
+                    | WF.col_has_qualifier(data, display_name="ThrowIn")
+                )
             )  # excludes corners and throw-ins
         ].copy()
         return total_touches
@@ -112,10 +122,10 @@ class PassNetworkDashboard(Dashboard):
             line_alpha=0.5,
         )
         pitch.draw(ax=ax)
-        logo_ax = pitch.inset_axes(6, 6/65*105 , 11,11/65*105, ax=ax, zorder=200)
+        logo_ax = pitch.inset_axes(6, 6 / 65 * 105, 11, 11 / 65 * 105, ax=ax, zorder=200)
         logo_ax.axis("off")
         logo_ax.imshow(get_ball_logo2())
-        
+
         return pitch
 
     def _plot_touches(
@@ -124,20 +134,20 @@ class PassNetworkDashboard(Dashboard):
         data["size"] = data["count"].apply(
             lambda x: self.MINSIZE + (x / self.MAX_TOUCH_QTY) * (self.MAXSIZE - self.MINSIZE)
         )
-        
+
         for i, row in data.iterrows():
             pitch.scatter(
-                row['x'],
-                row['y'],
+                row["x"],
+                row["y"],
                 ax=ax,
                 s=row["size"],
                 color=colors[0],
                 zorder=11,
                 ec=self.linecolor,
                 lw=1,
-            )   
-            if i in ['RCDM','LCDM','RCAM','LCAM']:
-                i = i.replace('C','')
+            )
+            if i in ["RCDM", "LCDM", "RCAM", "LCAM"]:
+                i = i.replace("C", "")
             pitch.annotate(
                 i,
                 (row["x"], row["y"]),
@@ -286,23 +296,37 @@ class PassNetworkDashboard(Dashboard):
             zorder=101,
         )
         ax.text(
-            x = 0.11, y=y_max * 0.5, s=dec_team, ha="left", va="center", size=16, fontproperties=font_bold.prop, color=self.linecolor, zorder=101
+            x=0.11,
+            y=y_max * 0.5,
+            s=dec_team,
+            ha="left",
+            va="center",
+            size=16,
+            fontproperties=font_bold.prop,
+            color=self.linecolor,
+            zorder=101,
         )
         ax.text(
-            x = 0.89, y=y_max * 0.5, s=dec_opponent, ha="right", va="center", size=16, fontproperties=font_bold.prop, color=self.linecolor, zorder=101
+            x=0.89,
+            y=y_max * 0.5,
+            s=dec_opponent,
+            ha="right",
+            va="center",
+            size=16,
+            fontproperties=font_bold.prop,
+            color=self.linecolor,
+            zorder=101,
         )
-        team_ax = ax.inset_axes((0.02, 0.04, aspect* 0.92, 0.92), zorder=200)
+        team_ax = ax.inset_axes((0.02, 0.04, aspect * 0.92, 0.92), zorder=200)
         team_ax.axis("off")
         team_ax.imshow(McLachBotBadgeService().team_badge(league, team))
-        opponent_ax = ax.inset_axes((1-0.02-aspect* 0.92, 0.04, aspect* 0.92, 0.92), zorder=200)
+        opponent_ax = ax.inset_axes(
+            (1 - 0.02 - aspect * 0.92, 0.04, aspect * 0.92, 0.92), zorder=200
+        )
         opponent_ax.axis("off")
         opponent_ax.imshow(McLachBotBadgeService().team_badge(league, opponent))
         # Add the rounded bbox patch to the axes
         ax.add_patch(rounded_bbox)
-        
-
-
-        
 
     def _plot_data(self, data: pd.DataFrame) -> PlotReturnType:
         non_carry = data.loc[data["event_type"] != EventType.Carry]
@@ -328,9 +352,9 @@ class PassNetworkDashboard(Dashboard):
             fontproperties=font_italic.prop,
             alpha=0.5,
         )
-        if data['filters'].iloc[0]:
+        if data["filters"].iloc[0]:
             pitch.annotate(
-                data.iloc[0]['filters'],
+                data.iloc[0]["filters"],
                 (95, 99),
                 ax=axes["pitch"],
                 color=self.linecolor,
@@ -341,24 +365,28 @@ class PassNetworkDashboard(Dashboard):
                 alpha=0.8,
             )
 
-
         self._plot_touches(pitch, average_pos, axes["pitch"], colors)
         self._plot_pass_pairings(pitch, pass_pairings, axes["pitch"])
         self._plot_title(data, axes["header"])
         self._plot_endnote(data, axes["endnote"])
         self._plot_sidebar(data, axes["sidebar"])
-        small_pitch_ax = pitch.inset_axes(95, 5, 9, 9, ax=axes['pitch'], zorder=300)
-        small_pitch = VerticalPitch('opta', pitch_color=self.facecolor, line_color=self.linecolor, linewidth=1, line_alpha=0.5)
+        small_pitch_ax = pitch.inset_axes(95, 5, 9, 9, ax=axes["pitch"], zorder=300)
+        small_pitch = VerticalPitch(
+            "opta",
+            pitch_color=self.facecolor,
+            line_color=self.linecolor,
+            linewidth=1,
+            line_alpha=0.5,
+        )
         small_pitch.draw(small_pitch_ax)
         positions_dict = small_pitch.get_formation(formation)
         try:
             color = TeamColorHelper().get_colours(league, team)[0]
         except:
-            color = 'black'
+            color = "black"
         for position in positions_dict:
             x, y = positions_dict[position].x, positions_dict[position].y
             small_pitch.scatter(x, y, color=color, s=30, ax=small_pitch_ax)
-           
 
         return fig, axes
 
@@ -425,7 +453,12 @@ class PassNetworkDashboard(Dashboard):
         )
 
     def _get_pass_pairings(self, data: pd.DataFrame, aggregation_variable: str):
-        data = data[(data["event_type"] == EventType.Pass) & (data["outcomeType"] == 1) & (~data['pass_receiver_position'].isna())].copy()
+        data = data[
+            (data["event_type"] == EventType.Pass)
+            & (data["outcomeType"] == 1)
+            & (~data["pass_receiver_position"].isna())
+            & (~data["position"].isna())
+        ].copy()
 
         if aggregation_variable == "position":
             for i, r in data.iterrows():

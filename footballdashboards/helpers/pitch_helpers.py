@@ -8,19 +8,28 @@ from matplotlib.lines import Line2D
 from footballdashboards.helpers.fonts import font_normal
 from footballdashboards.helpers.pass_type_definitions import PassTypeDefinition
 import matplotlib.patheffects as path_effects
-from footballdashboards.helpers.event_definitions import defensive_events, EventDefinition, get_touch_events
+from footballdashboards.helpers.event_definitions import (
+    defensive_events,
+    EventDefinition,
+    get_touch_events,
+)
 from sklearn.ensemble import IsolationForest
 import numpy as np
 import math
 
-def draw_passes_on_axes(ax:Axes, data:pd.DataFrame, pitch:Pitch, pass_types:List[str]=None):
+
+def draw_passes_on_axes(ax: Axes, data: pd.DataFrame, pitch: Pitch, pass_types: List[str] = None):
     data = data.copy()
-    data['passtypes'] = WF.classify_passes(data)
+    data["passtypes"] = WF.classify_passes(data)
     passes = data.loc[
         (data["event_type"] == EventType.Pass)
-        & (~WF.col_has_qualifier(data, qualifier_code=107)) # Not a throw in
+        & (~WF.col_has_qualifier(data, qualifier_code=107))  # Not a throw in
     ]
-    passtype_classes = [cls for cls in PassTypeDefinition.__subclasses__() if pass_types is None or cls.__name__ in pass_types]
+    passtype_classes = [
+        cls
+        for cls in PassTypeDefinition.__subclasses__()
+        if pass_types is None or cls.__name__ in pass_types
+    ]
     for passtype_class in passtype_classes:
         mask = passtype_class.mask(passes)
         select_passes = passes.loc[mask]
@@ -33,21 +42,35 @@ def draw_passes_on_axes(ax:Axes, data:pd.DataFrame, pitch:Pitch, pass_types:List
                 select_passes["endY"],
                 label=passtype_class.label(),
                 ax=ax,
-                **kwargs
+                **kwargs,
             )
 
-def draw_pass_legend_on_axes(ax:Axes, base_color:str, base_edge_color:str, loc:str="lower left", pass_types:List[str]=None, label_kwargs:Dict[str, Any]=None, legend_kwargs:Dict[str, Any]=None):
-    passtype_classes = [cls for cls in PassTypeDefinition.__subclasses__() if pass_types is None or cls.__name__ in pass_types]
+
+def draw_pass_legend_on_axes(
+    ax: Axes,
+    base_color: str,
+    base_edge_color: str,
+    loc: str = "lower left",
+    pass_types: List[str] = None,
+    label_kwargs: Dict[str, Any] = None,
+    legend_kwargs: Dict[str, Any] = None,
+):
+    passtype_classes = [
+        cls
+        for cls in PassTypeDefinition.__subclasses__()
+        if pass_types is None or cls.__name__ in pass_types
+    ]
     handles = []
-    label_kwargs = label_kwargs or {'marker':'o', 'markersize':5, 'linewidth':0}
+    label_kwargs = label_kwargs or {"marker": "o", "markersize": 5, "linewidth": 0}
     for passtype_class in passtype_classes:
         kwargs = passtype_class.get_line_kwargs()
         handles.append(
             Line2D(
-                [0], [0],
-                color = kwargs['color'],
-                label = passtype_class.label().title(),
-                **label_kwargs
+                [0],
+                [0],
+                color=kwargs["color"],
+                label=passtype_class.label().title(),
+                **label_kwargs,
             )
         )
 
@@ -58,22 +81,17 @@ def draw_pass_legend_on_axes(ax:Axes, base_color:str, base_edge_color:str, loc:s
             borderpad=0.25,
             handletextpad=0.1,
             prop=font_normal.prop,
-            ncol=3
+            ncol=3,
         )
 
-        
         ax.legend(
             handles=handles,
             loc=loc,
-            
             facecolor=base_color,
             edgecolor=base_edge_color,
             labelcolor=base_edge_color,
-            **legend_kwargs
-            
-    )
-
-
+            **legend_kwargs,
+        )
 
 
 def plot_positional_heatmap_on_pitch(
@@ -100,9 +118,7 @@ def plot_positional_heatmap_on_pitch(
         positional="full",
         normalize=True,
     )
-    pitch.heatmap_positional(
-        bin_statistic, ax=ax, cmap=cmap, edgecolors=base_edge_color
-    )
+    pitch.heatmap_positional(bin_statistic, ax=ax, cmap=cmap, edgecolors=base_edge_color)
     pitch.scatter(
         data.loc[passes_mask].x,
         data.loc[passes_mask].y,
@@ -121,6 +137,7 @@ def plot_positional_heatmap_on_pitch(
         path_effects=path_eff,
         zorder=20,
     )
+
 
 def apply_event_plot(
     pitch: Pitch,
@@ -164,9 +181,7 @@ def draw_defensive_events_on_axes(
 ):
     """Draw defensive events on the axes"""
     for event_type in defensive_events:
-        apply_event_plot(
-            pitch, ax, data, event_type, base_size, base_color, base_edge_color
-        )
+        apply_event_plot(pitch, ax, data, event_type, base_size, base_color, base_edge_color)
 
 
 def draw_convex_hull_without_outliers_on_axes(
@@ -188,13 +203,11 @@ def draw_convex_hull_without_outliers_on_axes(
             included["x"],
             included["y"],
         )
-        poly = pitch.polygon(
-            hull, ax=ax, edgecolor=color, facecolor=color, alpha=0.3, zorder=3
-        )
+        poly = pitch.polygon(hull, ax=ax, edgecolor=color, facecolor=color, alpha=0.3, zorder=3)
         return poly
     else:
         return None
-    
+
 
 def draw_defensive_event_legend(
     ax,
@@ -236,8 +249,7 @@ def draw_defensive_event_legend(
     total_elements_to_add = ncol * split - len(dict_of_events)
 
     array_legends = np.array(
-        legend_artists
-        + [Line2D([0], [0], linewidth=0, label="")] * total_elements_to_add
+        legend_artists + [Line2D([0], [0], linewidth=0, label="")] * total_elements_to_add
     )
 
     array_legends = np.resize(array_legends, (split, ncol))

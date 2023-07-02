@@ -6,12 +6,14 @@ from matplotlib.figure import Figure
 import numpy as np
 from mplsoccer.pitch import Pitch
 
+
 def get_ax_size(ax, fig):
     bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
     width, height = bbox.width, bbox.height
     width *= fig.dpi
     height *= fig.dpi
     return width, height
+
 
 def make_grid(
     pitch: Pitch,

@@ -1,6 +1,7 @@
 from footmav.data_definitions.whoscored.constants import EventType
 from footballdashboards.helpers import formatters
 
+
 def lineup_card(data):
 
     lineup_card = (
@@ -9,7 +10,9 @@ def lineup_card(data):
         .first()
         .reset_index()
     )
-    lineup_card['position']=lineup_card['position'].apply(lambda x: x if x not in ['RCDM','LCDM','RCAM','LCAM'] else x.replace('C',''))
+    lineup_card["position"] = lineup_card["position"].apply(
+        lambda x: x if x not in ["RCDM", "LCDM", "RCAM", "LCAM"] else x.replace("C", "")
+    )
     lineup_card = lineup_card.loc[lineup_card["shirt_number"] != -1]
     subs = (
         data.loc[data["event_type"] == EventType.SubstitutionOn][
@@ -46,24 +49,25 @@ def lineup_card(data):
     subs["On"] = subs["On"].astype(str)
     return starters, subs
 
-def extract_names_sorted_by_position(data, exclude_positions=None):
-        exclude_positions = exclude_positions or []
-        data = data.loc[data["event_type"] != EventType.Carry]
-        subs = data.loc[data["event_type"] == EventType.SubstitutionOn, "player_name"]
 
-        list_of_names = (
-            data.loc[
-                (~data["player_name"].isna())
-                & (~data["player_name"].isin(subs))
-                & (~data["position"].isin(exclude_positions))
-            ]
-            .groupby("player_name")
-            .first()
-            .reset_index()
-            .sort_values("sort_id")["player_name"]
-            .tolist()
-            + subs.tolist()
-        )
-        if len(list_of_names) > 15:
-            list_of_names = list_of_names[:16]
-        return list_of_names
+def extract_names_sorted_by_position(data, exclude_positions=None):
+    exclude_positions = exclude_positions or []
+    data = data.loc[data["event_type"] != EventType.Carry]
+    subs = data.loc[data["event_type"] == EventType.SubstitutionOn, "player_name"]
+
+    list_of_names = (
+        data.loc[
+            (~data["player_name"].isna())
+            & (~data["player_name"].isin(subs))
+            & (~data["position"].isin(exclude_positions))
+        ]
+        .groupby("player_name")
+        .first()
+        .reset_index()
+        .sort_values("sort_id")["player_name"]
+        .tolist()
+        + subs.tolist()
+    )
+    if len(list_of_names) > 15:
+        list_of_names = list_of_names[:16]
+    return list_of_names

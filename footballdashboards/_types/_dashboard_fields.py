@@ -130,6 +130,7 @@ class DictField(DashboardField):
             raise ValueError(f"dict field must have keys in {self.acceptable_keys}")
         return value
 
+
 class NumOfItemsField(DashboardField):
     """
     Descriptor for number of items field.
@@ -144,4 +145,3 @@ class NumOfItemsField(DashboardField):
         if value < 1:
             raise ValueError("num_of_items must be greater than 0")
         return value
-    

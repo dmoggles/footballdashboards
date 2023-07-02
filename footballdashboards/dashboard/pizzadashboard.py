@@ -9,7 +9,13 @@ from matplotlib.axes import Axes
 from matplotlib.projections.polar import PolarAxes
 from footballdashboards.dashboard.dashboard import Dashboard
 from footballdashboards._types._custom_types import PlotReturnType
-from footballdashboards._types._dashboard_fields import ColorField, FigSizeField, DashboardField, ColorMapField,NumOfItemsField
+from footballdashboards._types._dashboard_fields import (
+    ColorField,
+    FigSizeField,
+    DashboardField,
+    ColorMapField,
+    NumOfItemsField,
+)
 from footballdashboards.helpers.fonts import font_normal, font_bold, font_italic
 from footballdashboards.helpers.formatters import full_name_formatter
 from footballdashboards.helpers.matplotlib import get_aspect
@@ -29,7 +35,9 @@ class PizzaDashboard(Dashboard):
     )
     slice_colormap = ColorMapField(description="Slice colour", default=SLICE_COLORMAP)
     center_logo_url = DashboardField(description="URL of the center logo", default=None)
-    number_of_inner_grid_rings = NumOfItemsField(description="Number of inner grid rings", default=1)
+    number_of_inner_grid_rings = NumOfItemsField(
+        description="Number of inner grid rings", default=1
+    )
 
     def __init__(self, data_name: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -68,7 +76,7 @@ class PizzaDashboard(Dashboard):
         self._plot_pizza(data, axes["pizza"])
         self._plot_title(data, axes["title"])
         self._plot_endnote(data, axes["endnote"])
-        
+
         return fig, axes
 
     def _plot_title(self, data: pd.DataFrame, ax: Axes) -> Axes:
@@ -131,7 +139,7 @@ class PizzaDashboard(Dashboard):
             "AMPizza": "Attacking Midfielder/Winger",
             "ATTPizza": "Combined Fwd/AM",
             "GKPizza": "Goalkeeper",
-            'TargetmanPizza': 'Targetman Forward'
+            "TargetmanPizza": "Targetman Forward",
         }[self.datasource_name]
         ax.text(
             0.75,
@@ -169,7 +177,7 @@ class PizzaDashboard(Dashboard):
             fontsize=8,
         )
         try:
-            comparable = [c.strip() for c in data['All Competitions'].values[0].split(",")]
+            comparable = [c.strip() for c in data["All Competitions"].values[0].split(",")]
 
             ax.text(
                 -0.1,
@@ -200,10 +208,9 @@ class PizzaDashboard(Dashboard):
                 "Age",
                 "image_team",
                 "image_league",
-                "All Competitions"
+                "All Competitions",
             ]
-           and 
-            '__value' not in c
+            and "__value" not in c
         ]
         param_value_columns = [f"{p}__value" for p in params]
         values = data[params].values[0]
@@ -211,14 +218,16 @@ class PizzaDashboard(Dashboard):
         value_colors = [cmap(v) for v in values]
         values = [int(v) for v in np.round(values * 100, decimals=0)]
         if self.number_of_inner_grid_rings > 0:
-            ax.set_rgrids(np.linspace(0, 100, self.number_of_inner_grid_rings+2))
+            ax.set_rgrids(np.linspace(0, 100, self.number_of_inner_grid_rings + 2))
         pypizza = PyPizza(
             params=params,
             background_color=self.facecolor,
             straight_line_color=self.straight_line_color,
             straight_line_lw=1,
             last_circle_lw=0,  # linewidth of last circle
-            other_circle_lw=1 if self.number_of_inner_grid_rings > 0 else 0,  # linewidth of inner circles
+            other_circle_lw=1
+            if self.number_of_inner_grid_rings > 0
+            else 0,  # linewidth of inner circles
             inner_circle_size=10,  # size of inner circle
         )
         if set(param_value_columns).issubset(data.columns):
@@ -230,7 +239,7 @@ class PizzaDashboard(Dashboard):
             values,
             alt_text_values=text_values,
             ax=ax,
-            color_blank_space=['grey']*len(params),
+            color_blank_space=["grey"] * len(params),
             slice_colors=value_colors,
             value_colors=[self.textcolor] * len(params),  # color for the value-text
             value_bck_colors=value_colors,  # color for the blank spaces
@@ -257,7 +266,7 @@ class PizzaDashboard(Dashboard):
         if self.center_logo_url:
             try:
                 img = Image.open(urlopen(self.center_logo_url))
-                ax_insert = ax.inset_axes((0.46, 0.46,0.08, 0.08), zorder=0)
+                ax_insert = ax.inset_axes((0.46, 0.46, 0.08, 0.08), zorder=0)
                 ax_insert.axis("off")
 
                 ax_insert.imshow(
@@ -279,7 +288,9 @@ class TeamPizzaDashboard(Dashboard):
     )
     slice_colormap = ColorMapField(description="Slice colour", default=SLICE_COLORMAP)
     center_logo_url = DashboardField(description="URL of the center logo", default=None)
-    number_of_inner_grid_rings = NumOfItemsField(description="Number of inner grid rings", default=1)
+    number_of_inner_grid_rings = NumOfItemsField(
+        description="Number of inner grid rings", default=1
+    )
 
     @property
     def datasource_name(self) -> str:
@@ -297,15 +308,15 @@ class TeamPizzaDashboard(Dashboard):
         axes["endnote"].axis("off")
 
         return fig, axes
-    
+
     def _required_data_columns(self) -> Dict[str, str]:
         return {
             "Team": "Team name",
             "Competition": "Competitions included in the data",
             "Season": "Which season this data is for",
             "All Leagues": "All leagues included in the data to which the player was compared",
-            'Decorated League':'League name to use for display purposes',
-            'Decorated Team':'Team name to use for display purposes',
+            "Decorated League": "League name to use for display purposes",
+            "Decorated Team": "Team name to use for display purposes",
         }
 
     def _plot_data(self, data: pd.DataFrame) -> PlotReturnType:
@@ -313,9 +324,9 @@ class TeamPizzaDashboard(Dashboard):
         self._plot_pizza(data, axes["pizza"])
         self._plot_title(data, axes["title"])
         self._plot_endnote(data, axes["endnote"])
-        
+
         return fig, axes
-    
+
     def _plot_title(self, data: pd.DataFrame, ax: Axes) -> Axes:
         ax.text(
             0.02,
@@ -347,7 +358,7 @@ class TeamPizzaDashboard(Dashboard):
             color=self.textcolor,
             fontsize=12,
         )
-        
+
         if data["Team"].values[0] is not None:
             try:
                 badge_image = McLachBotBadgeService().team_badge(
@@ -362,11 +373,11 @@ class TeamPizzaDashboard(Dashboard):
                 pass
         if data["Competition"].values[0] is not None:
             try:
-                badge_image = McLachBotBadgeService().league_badge(
-                    data["Competition"].values[0]
-                )
+                badge_image = McLachBotBadgeService().league_badge(data["Competition"].values[0])
 
-                inset_ax = ax.inset_axes((1.08-get_aspect(ax) * 0.8, 0.2, get_aspect(ax) * 0.8, 0.8))
+                inset_ax = ax.inset_axes(
+                    (1.08 - get_aspect(ax) * 0.8, 0.2, get_aspect(ax) * 0.8, 0.8)
+                )
                 inset_ax.axis("off")
 
                 inset_ax.imshow(badge_image)
@@ -388,7 +399,7 @@ class TeamPizzaDashboard(Dashboard):
             fontsize=8,
         )
         try:
-            comparable = [c.strip() for c in data['All Leagues'].values[0].split(",")]
+            comparable = [c.strip() for c in data["All Leagues"].values[0].split(",")]
 
             ax.text(
                 -0.1,
@@ -402,8 +413,7 @@ class TeamPizzaDashboard(Dashboard):
             )
         except:
             pass
-        
-        
+
         return ax
 
     def _plot_pizza(self, data: pd.DataFrame, ax: PolarAxes) -> Axes:
@@ -420,37 +430,37 @@ class TeamPizzaDashboard(Dashboard):
                 "Decorated League",
                 "Decorated Team",
             ]
-            and 
-            '__value' not in c
+            and "__value" not in c
         ]
         param_value_columns = [f"{p}__value" for p in params]
         values = data[params].values[0]
-        
+
         cmap = get_cmap(self.slice_colormap)
         value_colors = [cmap(v) for v in values]
 
-        
         values = [int(v) for v in np.round(values * 100, decimals=0)]
         if set(param_value_columns).issubset(data.columns):
             text_values = data[param_value_columns].values[0]
         else:
             text_values = values
         if self.number_of_inner_grid_rings > 0:
-            ax.set_rgrids(np.linspace(0, 100, self.number_of_inner_grid_rings+2))
+            ax.set_rgrids(np.linspace(0, 100, self.number_of_inner_grid_rings + 2))
         pypizza = PyPizza(
             params=params,
             background_color=self.facecolor,
             straight_line_color=self.straight_line_color,
             straight_line_lw=1,
             last_circle_lw=0,  # linewidth of last circle
-            other_circle_lw=1 if self.number_of_inner_grid_rings > 0 else 0,  # linewidth for other circles
+            other_circle_lw=1
+            if self.number_of_inner_grid_rings > 0
+            else 0,  # linewidth for other circles
             inner_circle_size=10,  # size of inner circle
         )
         pypizza.make_pizza(
             values,
             alt_text_values=text_values,
             ax=ax,
-            color_blank_space=['grey']*len(params),
+            color_blank_space=["grey"] * len(params),
             slice_colors=value_colors,
             value_colors=[self.textcolor] * len(params),  # color for the value-text
             value_bck_colors=value_colors,  # color for the blank spaces
@@ -477,7 +487,7 @@ class TeamPizzaDashboard(Dashboard):
         if self.center_logo_url:
             try:
                 img = Image.open(urlopen(self.center_logo_url))
-                ax_insert = ax.inset_axes((0.46, 0.46,0.08, 0.08), zorder=0)
+                ax_insert = ax.inset_axes((0.46, 0.46, 0.08, 0.08), zorder=0)
                 ax_insert.axis("off")
 
                 ax_insert.imshow(
@@ -487,13 +497,13 @@ class TeamPizzaDashboard(Dashboard):
                 pass
 
         return ax
-    
+
     def _add_inverse_explanation(self, ax, data):
-        inverse_cols = ['PAdj Fouls Committed', 'PAdj Offsides']
+        inverse_cols = ["PAdj Fouls Committed", "PAdj Offsides"]
         actual_inverse_cols = [f"<{c}>" for c in inverse_cols if c in data.columns]
         if len(actual_inverse_cols) > 0:
             ax_text(
-                1.08-get_aspect(ax) * 0.8-0.02,
+                1.08 - get_aspect(ax) * 0.8 - 0.02,
                 0,
                 f"Note: {', '.join(actual_inverse_cols)} are inverted.\nTeams with higher values are better at avoiding these.",
                 ha="right",

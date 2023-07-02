@@ -1,5 +1,6 @@
 import colorsys
 
+
 def get_complimentary_color(hex_color):
     # Convert hex color to RGB tuple
     hex_color = hex_color[1:]
@@ -19,5 +20,3 @@ def get_complimentary_color(hex_color):
         int(r_complimentary * 255), int(g_complimentary * 255), int(b_complimentary * 255)
     )
     return hex_complimentary
-
-

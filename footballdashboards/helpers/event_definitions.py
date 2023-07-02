@@ -3,7 +3,6 @@ from footmav.data_definitions.whoscored.constants import EventType
 from footmav.utils import whoscored_funcs as WF
 
 
-
 @dataclass
 class EventDefinition:
     label: str
@@ -13,6 +12,7 @@ class EventDefinition:
     color: str = None
     edge_color: str = None
     size_mult: float = 1
+
 
 def get_touch_events(data):
     touch_events = [
@@ -43,10 +43,7 @@ def get_touch_events(data):
         (data["event_type"].isin(touch_events))
         | ((data["event_type"] == EventType.Foul) & (data["outcomeType"] == 1))
         | (
-            (
-                (data["event_type"] == EventType.Pass)
-                | (data["event_type"] == EventType.OffsidePass)
-            )
+            ((data["event_type"] == EventType.Pass) | (data["event_type"] == EventType.OffsidePass))
             & ~(
                 WF.col_has_qualifier(data, qualifier_code=6)
                 | WF.col_has_qualifier(data, display_name="ThrowIn")
@@ -55,13 +52,12 @@ def get_touch_events(data):
     ].copy()
     return total_touches
 
+
 defensive_events = [
     EventDefinition("Recovery", EventType.BallRecovery, 1, "o"),
     EventDefinition("Interception", EventType.Interception, 1, "X", size_mult=1.5),
     EventDefinition("Interception", EventType.BlockedPass, 1, "X", size_mult=1.5),
-    EventDefinition(
-        "Tackle Won (won ball)", EventType.Tackle, 1, "D", "green", "lightgreen"
-    ),
+    EventDefinition("Tackle Won (won ball)", EventType.Tackle, 1, "D", "green", "lightgreen"),
     EventDefinition(
         "Tackle Won (other team kept ball)",
         EventType.Tackle,

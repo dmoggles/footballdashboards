@@ -2,14 +2,14 @@ import requests
 import json
 from urllib.error import HTTPError
 
+
 class TeamColorHelper:
 
     url = "http://www.mclachbot.com:9000"
 
     default_colours = ["#bbbbbb", "#000000"]
 
-
-    def get_colours(self, league:str, team:str):
+    def get_colours(self, league: str, team: str):
         league = league.replace(" ", "%20")
         team = team.replace(" ", "%20")
         url = f"http://www.mclachbot.com:9000/colours/{league}/{team}"
