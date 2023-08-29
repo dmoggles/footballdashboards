@@ -47,7 +47,6 @@ class ColorField(DashboardField):
     """
 
     def _set_validate(self, value):
-
         if value is not None and not is_color_like(value):
             raise ValueError(f"{value} is not a valid color")
         return value
@@ -61,7 +60,6 @@ class ColorMapField(DashboardField):
     """
 
     def _set_validate(self, value):
-
         if value is not None and value not in plt.colormaps():
             raise ValueError(f"{value} is not a valid colormap")
         return value
@@ -144,4 +142,20 @@ class NumOfItemsField(DashboardField):
             raise ValueError("num_of_items must be an integer")
         if value < 1:
             raise ValueError("num_of_items must be greater than 0")
+        return value
+
+
+class ColorListField(DashboardField):
+    """
+    Descriptor for color list field.
+
+    Must be a list of valid matplotlib colors
+
+    """
+
+    def _set_validate(self, value):
+        if not isinstance(value, list):
+            raise ValueError("color list field must be a list")
+        if not all(is_color_like(x) for x in value):
+            raise ValueError("color list field must be a list of valid colors")
         return value

@@ -56,3 +56,9 @@ font_mono = FontManagerLocal(
 font_varsity = FontManagerLocal(
     get_path("VarsityTeam-Bold.otf"),
 )
+font_royal_crescent = FontManagerLocal(
+    get_path("royal_crescent.ttf"),
+)
+font_berpatroli = FontManagerLocal(
+    get_path("berpatroli.otf"),
+)
