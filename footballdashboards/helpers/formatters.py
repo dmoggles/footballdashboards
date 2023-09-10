@@ -87,6 +87,70 @@ def length_based_name_formatter(name, length_limit=20):
     return full_name_formatter(name)
 
 
+def smartest_name_formatter_yet(name, length_limit=20):
+    particles = [
+        "de",
+        "von",
+        "van",
+        "del",
+        "della",
+        "di",
+        "du",
+        "le",
+        "la",
+        "lo",
+        "da",
+        "das",
+        "der",
+        "den",
+        "ten",
+        "ter",
+        "te",
+        "af",
+    ]
+
+    tokens = name.split(" ")
+
+    tokens = [t.capitalize() if t not in particles else t for t in tokens]
+    if tokens[-1].startswith("Mc"):
+        tokens[-1] = tokens[-1][:2] + tokens[-1][2].upper() + tokens[-1][3:]
+
+    name = " ".join(tokens)
+    if len(name) > length_limit and set(particles).intersection(set(tokens)):
+        particle_index = [i for i, x in enumerate(tokens) if x in particles][0]
+        name = (
+            f"{tokens[0][0].upper()}. "
+            + tokens[particle_index]
+            + " "
+            + " ".join(tokens[particle_index + 1 :]).title()
+        )
+    if len(name) > length_limit and len(name.split(" ")) >= 4:
+        tokens = name.split(" ")
+        name = f"{tokens[0].title()} {tokens[-1].title()}"
+    if (
+        len(name) > length_limit
+        and len(name.split(" ")) == 3
+        and name.split(" ")[1] not in particles
+    ):
+        tokens = name.split(" ")
+        name = f"{tokens[0].capitalize()} {tokens[1][0].upper()}. {tokens[-1].capitalize()}"
+
+    if (
+        len(name) > length_limit
+        and len(name.split(" ")) == 3
+        and name.split(" ")[1] not in particles
+    ):
+        tokens = name.split(" ")
+        name = f"{tokens[0].capitalize()} {tokens[-1].capitalize()}"
+
+    if len(name) > length_limit:
+        name = length_based_name_formatter(name, length_limit=length_limit)
+    tokens = name.split(" ")
+    tokens = [t if not t.startswith("Mc") else t[:2] + t[2].upper() + t[3:] for t in tokens]
+    name = " ".join(tokens)
+    return name
+
+
 def simplified_opta_position(position: str):
     if position in ["CB", "RCB", "LCB"]:
         return "CB"

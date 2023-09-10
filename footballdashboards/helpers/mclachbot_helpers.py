@@ -2,11 +2,13 @@
 Helpers for getting data from the mclachbot API
 """
 
+from typing import Any
 from urllib.request import urlopen
 from PIL import Image
 from urllib.error import HTTPError
 import requests
 import json
+import os
 
 
 class McLachBotBadgeService:
@@ -107,3 +109,56 @@ class TeamColorHelper:
 
         except HTTPError:
             return None
+
+
+class CachedPlayerImageHelper:
+    url = "http://www.mclachbot.com:9000"
+
+    def __init__(self, cache_dir: str = None):
+        self.cache_dir = cache_dir
+
+    def _check_cached_dir(self) -> bool:
+        if not self.cache_dir:
+            return False
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
+        return True
+
+    def _check_cached_image(self, player_id: int) -> bool:
+        if not self.cache_dir:
+            return False
+        if not os.path.exists(self.cache_dir):
+            return False
+        if not os.path.exists(os.path.join(self.cache_dir, f"{player_id}.png")):
+            return False
+        return True
+
+    def _get_cached_image(self, player_id: int) -> Any:
+        if not self.cache_dir:
+            return None
+        if not os.path.exists(self.cache_dir):
+            return None
+        if not os.path.exists(os.path.join(self.cache_dir, f"{player_id}.png")):
+            return None
+        return Image.open(os.path.join(self.cache_dir, f"{player_id}.png"))
+
+    def _get_player_image(self, player_id: int) -> Any:
+        full_url = f"{self.url}/player_cutout/{player_id}"
+        try:
+            r = requests.get(full_url)
+            if r.status_code == 200:
+                img = Image.open(urlopen(full_url))
+                if self._check_cached_dir():
+                    img.save(os.path.join(self.cache_dir, f"{player_id}.png"))
+                return img
+            else:
+                return None
+
+        except HTTPError:
+            return None
+
+    def get_player_image(self, player_id: int) -> Any:
+        if self._check_cached_image(player_id):
+            return self._get_cached_image(player_id)
+        else:
+            return self._get_player_image(player_id)

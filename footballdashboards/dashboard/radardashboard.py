@@ -84,6 +84,7 @@ class RadarDashboard(Dashboard):
             if c
             not in [
                 "Player",
+                "player_id",
                 "Team",
                 "Minutes",
                 "Season",
@@ -304,7 +305,6 @@ class RadarDashboard(Dashboard):
                 pass
 
     def _plot_endnotes(self, ax: Axes):
-
         ax.text(
             1.0,
             1,

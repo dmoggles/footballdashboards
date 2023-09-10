@@ -201,6 +201,7 @@ class PizzaDashboard(Dashboard):
             if c
             not in [
                 "Player",
+                "player_id",
                 "Team",
                 "Minutes",
                 "Season",

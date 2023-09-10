@@ -62,3 +62,6 @@ font_royal_crescent = FontManagerLocal(
 font_berpatroli = FontManagerLocal(
     get_path("berpatroli.otf"),
 )
+font_europa = FontManagerLocal(
+    get_path("europa_grotesq.otf"),
+)
