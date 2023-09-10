@@ -38,5 +38,5 @@ setup(
         "Programming Language :: Python :: 3.0",
         "Topic :: Utilities",
     ],
-    package_data={"": ["*.ttf"]},
+    package_data={"": ["*.ttf", "*.otf"]},
 )
