@@ -17,11 +17,13 @@ from matplotlib.figure import Figure
 from matplotlib import colormaps
 from PIL import Image
 import numpy as np
+from urllib.request import urlopen
 
 
 class NewDesignPizzaDashboard(PizzaDashboard):
     PLAYER_IMAGE_CACHE_URL = None
     PRESERVE_FULLSIZE_CUTOUT = False
+    SCOUTED_IMAGE_LOCATION = None
 
     def _template_color(self):
         templates = {
@@ -80,23 +82,23 @@ class NewDesignPizzaDashboard(PizzaDashboard):
         return fig, axes
 
     def _plot_endnote(self, data: pd.DataFrame, ax: Axes) -> Axes:
-        path = os.path.join(os.path.dirname(__file__), "..", "images", "scouted-new-black.png")
-        image = Image.open(path)
-        image_aspect = image.size[1] / image.size[0]
-        ax_aspect = get_aspect(ax)
-        inset_scouted = ax.inset_axes([0.02, 4.2, 0.2, 0.2 / ax_aspect * image_aspect])
-        inset_scouted.axis("off")
-        inset_scouted.imshow(image)
-        ax.text(
-            0.02,
-            8,
-            "Graphic Design By",
-            fontproperties=font_normal.prop,
-            fontsize=8,
-            ha="left",
-            va="center",
-            zorder=8,
-        )
+        if self.SCOUTED_IMAGE_LOCATION:
+            image = Image.open(urlopen(self.SCOUTED_IMAGE_LOCATION))
+            image_aspect = image.size[1] / image.size[0]
+            ax_aspect = get_aspect(ax)
+            inset_scouted = ax.inset_axes([0.02, 4.2, 0.2, 0.2 / ax_aspect * image_aspect])
+            inset_scouted.axis("off")
+            inset_scouted.imshow(image)
+            ax.text(
+                0.02,
+                8,
+                "Graphic Design By",
+                fontproperties=font_normal.prop,
+                fontsize=8,
+                ha="left",
+                va="center",
+                zorder=8,
+            )
 
         try:
             comparable = [c.strip() for c in data["All Competitions"].values[0].split(",")]
