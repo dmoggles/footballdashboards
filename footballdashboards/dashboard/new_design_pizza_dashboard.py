@@ -202,7 +202,7 @@ class NewDesignPizzaDashboard(PizzaDashboard):
         self, minutes: str, team_name: str, league_name: str, season: str, ax: Axes
     ):
         season_str = self._format_season(season, league_name)
-        full_str = f"{minutes} minutes | {team_name} | {league_name} | {season_str}"
+        full_str = f"{minutes:.0f} minutes | {team_name} | {league_name} | {season_str}"
         ax.text(
             0.05,
             0.1,
