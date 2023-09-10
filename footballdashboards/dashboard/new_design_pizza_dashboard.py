@@ -218,9 +218,10 @@ class NewDesignPizzaDashboard(PizzaDashboard):
         aspect = get_aspect(ax)
         insert_ax = ax.inset_axes([1 - aspect - 0.04, 0, aspect, 1])
         insert_ax.axis("off")
-        img = np.array(
-            CachedPlayerImageHelper(self.PLAYER_IMAGE_CACHE_URL).get_player_image(player_id)
-        )
+        img = CachedPlayerImageHelper(self.PLAYER_IMAGE_CACHE_URL).get_player_image(player_id)
+        if img is None:
+            return
+        img = np.array(img)
         if not self.PRESERVE_FULLSIZE_CUTOUT:
             img = img[
                 int(img.shape[0] * 0.0) : int(img.shape[0] * 0.5),
