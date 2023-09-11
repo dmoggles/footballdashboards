@@ -183,7 +183,7 @@ class NewDesignPizzaDashboard(PizzaDashboard):
     def _draw_name(self, player_name: str, ax: Axes):
         ax.text(
             0.06,
-            0.4,
+            0.6,
             smartest_name_formatter_yet(player_name),
             fontproperties=font_europa.prop,
             fontsize=38,
@@ -199,14 +199,32 @@ class NewDesignPizzaDashboard(PizzaDashboard):
             return f"{season}/{str(season+1)[-2:]} season"
 
     def _draw_subheader(
-        self, minutes: str, team_name: str, league_name: str, season: str, ax: Axes
+        self, minutes: str, team_name: str, league_name: str, season: str, age: str, ax: Axes
     ):
+        tokens = league_name.split(",")
+        if len(tokens) > 1:
+            # strip champions league and europa league
+            league_name = (
+                next(t for t in tokens if "Champions League" not in t and "Europa League" not in t)
+                + "*"
+            )
         season_str = self._format_season(season, league_name)
-        full_str = f"{minutes:.0f} minutes | {team_name} | {league_name} | {season_str}"
+        full_str1 = f"{minutes:.0f} minutes | {age:.0f} years old"
+        full_str2 = f"{team_name} | {league_name.replace(',',', ')} | {season_str}"
+        ax.text(
+            0.05,
+            0.25,
+            full_str1,
+            fontproperties=font_normal.prop,
+            fontsize=12,
+            ha="left",
+            va="bottom",
+            zorder=10,
+        )
         ax.text(
             0.05,
             0.1,
-            full_str,
+            full_str2,
             fontproperties=font_normal.prop,
             fontsize=12,
             ha="left",
@@ -238,8 +256,9 @@ class NewDesignPizzaDashboard(PizzaDashboard):
         league_name = data["Competition"].unique()[0]
         season = data["Season"].unique()[0]
         player_id = data["player_id"].unique()[0]
+        age = data["Age"].unique()[0]
         self._place_team_logo(team_image, league_image, ax, fig)
         self._draw_line(team_image, league_image, ax)
         self._draw_name(player_name, ax)
-        self._draw_subheader(minutes, team_name, league_name, season, ax)
+        self._draw_subheader(minutes, team_name, league_name, season, age, ax)
         self._plot_cutout(player_id, ax)
