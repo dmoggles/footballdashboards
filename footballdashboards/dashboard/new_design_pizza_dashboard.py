@@ -14,7 +14,7 @@ from footballdashboards.helpers.formatters import smartest_name_formatter_yet
 from footballdashboards.helpers.utils import is_high_luminance
 from footballdashboards._types._custom_types import PlotReturnType
 from matplotlib.figure import Figure
-from matplotlib import colormaps
+from matplotlib.cm import get_cmap
 from PIL import Image
 import numpy as np
 from urllib.request import urlopen
@@ -86,7 +86,7 @@ class NewDesignPizzaDashboard(PizzaDashboard):
             image = Image.open(urlopen(self.SCOUTED_IMAGE_LOCATION))
             image_aspect = image.size[1] / image.size[0]
             ax_aspect = get_aspect(ax)
-            inset_scouted = ax.inset_axes([0.02, 4.2, 0.2, 0.2 / ax_aspect * image_aspect])
+            inset_scouted = ax.inset_axes([0.02, 4.6, 0.15, 0.15 / ax_aspect * image_aspect])
             inset_scouted.axis("off")
             inset_scouted.imshow(image)
             ax.text(
@@ -175,7 +175,7 @@ class NewDesignPizzaDashboard(PizzaDashboard):
     def _draw_line(self, team_name: str, league_name: str, ax: Axes):
         color = TeamColorHelper().get_colours(league_name, team_name)
         if color is None or color[0] == "#bbbbbb":
-            color = colormaps.get_cmap(self.slice_colormap)(0.8)
+            color = get_cmap(self.slice_colormap)(0.8)
         else:
             color = color[0]
         ax.plot([0.04, 0.96], [0.0, 0.0], lw=7, color=color, zorder=10)
