@@ -238,9 +238,10 @@ class NewDesignPizzaDashboard(PizzaDashboard):
         insert_ax = ax.inset_axes([1 - aspect - 0.04, 0, aspect, 1])
         insert_ax.axis("off")
         img = CachedPlayerImageHelper(self.PLAYER_IMAGE_CACHE_URL).get_player_image(player_id)
-        img = np.array(list(img.convert('RGBA').getdata())).reshape(img.height, img.width, 4)
         if img is None:
             return
+        img = np.array(list(img.convert('RGBA').getdata())).reshape(img.height, img.width, 4)
+        
         img = np.array(img)
         if not self.PRESERVE_FULLSIZE_CUTOUT:
             img = img[
