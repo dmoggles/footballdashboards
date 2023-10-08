@@ -23,6 +23,7 @@ from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService, 
 from urllib.request import urlopen
 from PIL import Image
 from highlight_text import ax_text
+from footballdashboards.helpers.utils import is_high_luminance
 
 
 class PizzaDashboard(Dashboard):
@@ -217,6 +218,7 @@ class PizzaDashboard(Dashboard):
         values = data[params].values[0]
         cmap = get_cmap(self.slice_colormap)
         value_colors = [cmap(v) for v in values]
+        text_colors = [self.textcolor if is_high_luminance(c) else self.facecolor for c in value_colors]
         values = [int(v) for v in np.round(values * 100, decimals=0)]
         if self.number_of_inner_grid_rings > 0:
             ax.set_rgrids(np.linspace(0, 100, self.number_of_inner_grid_rings + 2))
@@ -242,7 +244,7 @@ class PizzaDashboard(Dashboard):
             ax=ax,
             color_blank_space=["grey"] * len(params),
             slice_colors=value_colors,
-            value_colors=[self.textcolor] * len(params),  # color for the value-text
+            value_colors=text_colors,  # color for the value-text
             value_bck_colors=value_colors,  # color for the blank spaces
             blank_alpha=0.4,  # alpha for blank-space colors
             kwargs_slices=dict(
@@ -438,7 +440,7 @@ class TeamPizzaDashboard(Dashboard):
 
         cmap = get_cmap(self.slice_colormap)
         value_colors = [cmap(v) for v in values]
-
+        text_colors = [self.textcolor if is_high_luminance(c) else self.facecolor for c in value_colors]
         values = [int(v) for v in np.round(values * 100, decimals=0)]
         if set(param_value_columns).issubset(data.columns):
             text_values = data[param_value_columns].values[0]
@@ -463,7 +465,7 @@ class TeamPizzaDashboard(Dashboard):
             ax=ax,
             color_blank_space=["grey"] * len(params),
             slice_colors=value_colors,
-            value_colors=[self.textcolor] * len(params),  # color for the value-text
+            value_colors=text_colors,  # color for the value-text
             value_bck_colors=value_colors,  # color for the blank spaces
             blank_alpha=0.4,  # alpha for blank-space colors
             kwargs_slices=dict(

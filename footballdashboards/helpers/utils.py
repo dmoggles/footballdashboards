@@ -31,27 +31,32 @@ def get_complimentary_color(hex_color):
     return hex_complimentary
 
 
-def is_high_luminance(color):
+def is_high_luminance(color, luminance_threshold=0.5):
     # Convert the color to RGB format if it's in hexadecimal or other formats
-    if color.startswith("#"):
+    if isinstance(color, str) and color.startswith("#"):
         color = color[1:]
         color = tuple(int(color[i : i + 2], 16) for i in (0, 2, 4))
-    elif color.startswith("rgb"):
+    elif isinstance(color, str) and color.startswith("rgb"):
         color = color[color.index("(") + 1 : color.index(")")].split(",")
         color = tuple(int(channel.strip()) for channel in color)
-    elif isinstance(color, str):
+    elif isinstance(color, str) and isinstance(color, str):
         color = color_name_to_rgb(color)
     # Extract the red, green, and blue channels
+    
     if len(color) == 4:
         r, g, b, _ = color
     else:
         r, g, b = color
+    if r <= 1.0 and g <= 1.0 and b <= 1.0:
+        r *= 255
+        g *= 255
+        b *= 255
 
     # Calculate the relative luminance
     luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
 
     # Decide whether the color is light or dark based on luminance
-    if luminance > 0.5:
+    if luminance > luminance_threshold:
         return True
     else:
         return False
