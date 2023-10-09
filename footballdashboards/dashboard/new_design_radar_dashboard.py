@@ -7,11 +7,13 @@ from footballdashboards._types._dashboard_fields import (
     FigSizeField,
     DashboardField,
     is_color_like,
-    
 )
 from footballdashboards.helpers.utils import is_high_luminance
 from footballdashboards._types._custom_types import PlotReturnType
-from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService, CachedPlayerImageHelper
+from footballdashboards.helpers.mclachbot_helpers import (
+    McLachBotBadgeService,
+    CachedPlayerImageHelper,
+)
 from footballdashboards.helpers.matplotlib import get_aspect
 from footballdashboards.helpers.formatters import smartest_name_formatter_yet
 from footballdashboards.helpers.fonts import font_europa, font_normal, font_italic
@@ -20,13 +22,13 @@ from PIL import Image
 from urllib.request import urlopen
 from footballdashboards.dashboard.radardashboard import RadarDashboard
 
+
 class NewStyleRadarDashboard(RadarDashboard):
     PLAYER_IMAGE_CACHE_URL = None
     PRESERVE_FULLSIZE_CUTOUT = False
     SCOUTED_IMAGE_LOCATION = None
     FIG_SIZE_DEFAULT = (4 * 1.5, 6 * 1.5)
     fig_size = FigSizeField(description="Figure size", default=FIG_SIZE_DEFAULT)
-
 
     def _template_color(self, template_name: str = None):
         templates = {
@@ -41,8 +43,6 @@ class NewStyleRadarDashboard(RadarDashboard):
         }
         return templates[template_name]
 
-    
-
     def _setup_figure(self):
         fig = Figure(figsize=(6.75, 9), dpi=100, facecolor=self.facecolor)
         axes = {}
@@ -53,15 +53,13 @@ class NewStyleRadarDashboard(RadarDashboard):
         axes["endnote"].axis("off")
 
         return fig, axes
-    
-    
-    
-    def _place_team_logo(self, team: str, league, ax: Axes, fig: Figure, side:str):
+
+    def _place_team_logo(self, team: str, league, ax: Axes, fig: Figure, side: str):
         img = McLachBotBadgeService().team_badge(league, team)
-        img = np.array(list(img.convert('RGBA').getdata())).reshape(img.height, img.width, 4)
-        rotate_angle = 10 if side=='left' else -10
+        img = np.array(list(img.convert("RGBA").getdata())).reshape(img.height, img.width, 4)
+        rotate_angle = 10 if side == "left" else -10
         rotated_img = rotate(img, rotate_angle, reshape=True)
-        if side == 'left':
+        if side == "left":
             rotated_img = rotated_img[
                 int(rotated_img.shape[0] / 5) : rotated_img.shape[0],
                 int(rotated_img.shape[1] / 5) : rotated_img.shape[1],
@@ -73,18 +71,21 @@ class NewStyleRadarDashboard(RadarDashboard):
             ]
         fig_aspect = fig.get_figheight() / fig.get_figwidth()
         img_size = 0.15
-        if side == 'left':
+        if side == "left":
             ax = fig.add_axes([0, 1 - img_size, img_size * fig_aspect, img_size], zorder=0.1)
         else:
-            ax = fig.add_axes([1 - img_size * fig_aspect, 1 - img_size, img_size * fig_aspect, img_size], zorder=0.1)
+            ax = fig.add_axes(
+                [1 - img_size * fig_aspect, 1 - img_size, img_size * fig_aspect, img_size],
+                zorder=0.1,
+            )
         ax.axis("off")
         ax.imshow(rotated_img, alpha=0.2)
 
-    def _draw_line(self, ax:Axes):
-        ax.fill([0.04, .51, 0.49, 0.04], [0.04, 0.04, 0.0, 0.0], c=self.radar_colors[0])
+    def _draw_line(self, ax: Axes):
+        ax.fill([0.04, 0.51, 0.49, 0.04], [0.04, 0.04, 0.0, 0.0], c=self.radar_colors[0])
         ax.fill([0.49, 0.96, 0.96, 0.51], [0.0, 0.0, 0.04, 0.04], c=self.radar_colors[1])
 
-    def _draw_name(self, player_name1: str, player_name2:str, ax: Axes):
+    def _draw_name(self, player_name1: str, player_name2: str, ax: Axes):
         ax.text(
             0.06,
             0.9,
@@ -105,7 +106,7 @@ class NewStyleRadarDashboard(RadarDashboard):
             va="bottom",
             zorder=10,
         )
-    
+
     def _format_season(self, season, league_name):
         if league_name in ["MLS", "Brasilian Serie A", "NWSL", "Argentine Primera", "World Cup"]:
             return f"{season} season"
@@ -113,7 +114,14 @@ class NewStyleRadarDashboard(RadarDashboard):
             return f"{season}/{str(season+1)[-2:]} season"
 
     def _draw_subheader(
-        self, minutes: str, team_name: str, league_name: str, season: str, age: str, ax: Axes, side:str
+        self,
+        minutes: str,
+        team_name: str,
+        league_name: str,
+        season: str,
+        age: str,
+        ax: Axes,
+        side: str,
     ):
         tokens = league_name.split(",")
         if len(tokens) > 1:
@@ -125,7 +133,7 @@ class NewStyleRadarDashboard(RadarDashboard):
         season_str = self._format_season(season, league_name)
         full_str1 = f"{minutes:.0f} minutes | {age:.0f} years old"
         full_str2 = f"{team_name} | {league_name.replace(',',', ')} | {season_str}"
-        if side=='left':
+        if side == "left":
             ax.text(
                 0.05,
                 0.72,
@@ -167,20 +175,21 @@ class NewStyleRadarDashboard(RadarDashboard):
                 va="bottom",
                 zorder=10,
             )
-    def _plot_cutout(self, player_id: str, ax: Axes, side:str):
+
+    def _plot_cutout(self, player_id: str, ax: Axes, side: str):
         aspect = get_aspect(ax)
-        if side == 'left':
+        if side == "left":
             height = 0.4
-            insert_ax = ax.inset_axes([0.5, 0.55, height * aspect, height])
+            insert_ax = ax.inset_axes([0.25 - height * aspect / 2, 0.05, height * aspect, height])
         else:
             height = 0.4
-            insert_ax = ax.inset_axes([0.5-height*aspect, 0.05, height * aspect, height])
+            insert_ax = ax.inset_axes([0.75 - height * aspect / 2, 0.55, height * aspect, height])
         insert_ax.axis("off")
         img = CachedPlayerImageHelper(self.PLAYER_IMAGE_CACHE_URL).get_player_image(player_id)
         if img is None:
             return
-        img = np.array(list(img.convert('RGBA').getdata())).reshape(img.height, img.width, 4)
-        
+        img = np.array(list(img.convert("RGBA").getdata())).reshape(img.height, img.width, 4)
+
         img = np.array(img)
         if not self.PRESERVE_FULLSIZE_CUTOUT:
             img = img[
@@ -188,8 +197,8 @@ class NewStyleRadarDashboard(RadarDashboard):
                 int(img.shape[1] * 0.25) : int(img.shape[1] * 0.75),
             ]
         insert_ax.imshow(img, alpha=1)
-        
-    def _plot_header(self, ax: Axes, data: pd.DataFrame, fig:Figure):
+
+    def _plot_header(self, ax: Axes, data: pd.DataFrame, fig: Figure):
         player_1_name = data["Player"].iloc[0]
         player_2_name = data["Player"].iloc[1]
         team_1_name = data["Team"].iloc[0]
@@ -216,16 +225,20 @@ class NewStyleRadarDashboard(RadarDashboard):
         minutes_2 = data["Minutes"].iloc[1]
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
-        self._place_team_logo(image_name_1, image_league_1, ax, fig, side='left')
-        self._place_team_logo(image_name_2, image_league_2, ax, fig, side='right')
+        self._place_team_logo(image_name_1, image_league_1, ax, fig, side="left")
+        self._place_team_logo(image_name_2, image_league_2, ax, fig, side="right")
         self._draw_line(ax)
         self._draw_name(player_1_name, player_2_name, ax)
-        self._draw_subheader(minutes_1, team_1_name, competition_1, season_1, age_1, ax, side='left')
-        self._draw_subheader(minutes_2, team_2_name, competition_2, season_2, age_2, ax, side='right')
-        self._plot_cutout(data["player_id"].iloc[0], ax, side='left')
-        self._plot_cutout(data["player_id"].iloc[1], ax, side='right')
+        self._draw_subheader(
+            minutes_1, team_1_name, competition_1, season_1, age_1, ax, side="left"
+        )
+        self._draw_subheader(
+            minutes_2, team_2_name, competition_2, season_2, age_2, ax, side="right"
+        )
+        self._plot_cutout(data["player_id"].iloc[0], ax, side="left")
+        self._plot_cutout(data["player_id"].iloc[1], ax, side="right")
 
-    def _plot_endnotes(self, ax: Axes, data:pd.DataFrame):
+    def _plot_endnotes(self, ax: Axes, data: pd.DataFrame):
         template_name = data["Template Name"].iloc[0]
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
@@ -302,6 +315,6 @@ class NewStyleRadarDashboard(RadarDashboard):
     def _plot_data(self, data: pd.DataFrame) -> PlotReturnType:
         fig, axes = self._setup_figure()
         self._plot_radar(axes["radar"], data)
-        self._plot_header(axes["title"], data,fig)
+        self._plot_header(axes["title"], data, fig)
         self._plot_endnotes(axes["endnote"], data)
         return fig, axes
