@@ -141,6 +141,7 @@ class PizzaDashboard(Dashboard):
             "ATTPizza": "Combined Fwd/AM",
             "GKPizza": "Goalkeeper",
             "TargetmanPizza": "Targetman Forward",
+            "BuildUpIndexPizza": "Build Up Score",
         }[self.datasource_name]
         ax.text(
             0.75,
@@ -214,12 +215,19 @@ class PizzaDashboard(Dashboard):
             ]
             and "__value" not in c
         ]
+        if self.datasource_name == "BuildUpIndexPizza":
+            params = ["Build Up Score"] + [p for p in params if p != "Build Up Score"]
         param_value_columns = [f"{p}__value" for p in params]
         values = data[params].values[0]
         cmap = get_cmap(self.slice_colormap)
         value_colors = [cmap(v) for v in values]
-        text_colors = [self.textcolor if is_high_luminance(c) else self.facecolor for c in value_colors]
-        values = [int(v) for v in np.round(values * 100, decimals=0)]
+        if self.datasource_name == "BuildUpIndexPizza":
+            value_colors = [(1.0, 165 / 255.0, 0, 1)] + value_colors[1:]  # orange index slice
+        text_colors = [
+            self.textcolor if is_high_luminance(c) else self.facecolor for c in value_colors
+        ]
+        # values = [int(v) for v in np.round(values * 100, decimals=0)]
+        values = values * 100
         if self.number_of_inner_grid_rings > 0:
             ax.set_rgrids(np.linspace(0, 100, self.number_of_inner_grid_rings + 2))
         pypizza = PyPizza(
@@ -440,7 +448,9 @@ class TeamPizzaDashboard(Dashboard):
 
         cmap = get_cmap(self.slice_colormap)
         value_colors = [cmap(v) for v in values]
-        text_colors = [self.textcolor if is_high_luminance(c) else self.facecolor for c in value_colors]
+        text_colors = [
+            self.textcolor if is_high_luminance(c) else self.facecolor for c in value_colors
+        ]
         values = [int(v) for v in np.round(values * 100, decimals=0)]
         if set(param_value_columns).issubset(data.columns):
             text_values = data[param_value_columns].values[0]

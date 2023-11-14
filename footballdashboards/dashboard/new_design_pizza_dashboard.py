@@ -35,6 +35,7 @@ class NewDesignPizzaDashboard(PizzaDashboard):
             "ATTPizza": "grey",
             "GKPizza": "purple",
             "TargetmanPizza": "black",
+            "BuildUpIndexPizza": "turquoise",
         }
         return templates[self.datasource_name]
 
@@ -48,6 +49,7 @@ class NewDesignPizzaDashboard(PizzaDashboard):
             "ATTPizza": "Combined Fwd/AM",
             "GKPizza": "Goalkeeper",
             "TargetmanPizza": "Targetman Forward",
+            "BuildUpIndexPizza": "Build Up Score",
         }
         return templates[self.datasource_name]
 
@@ -161,7 +163,7 @@ class NewDesignPizzaDashboard(PizzaDashboard):
 
     def _place_team_logo(self, team: str, league, ax: Axes, fig: Figure):
         img = McLachBotBadgeService().team_badge(league, team)
-        img = np.array(list(img.convert('RGBA').getdata())).reshape(img.height, img.width, 4)
+        img = np.array(list(img.convert("RGBA").getdata())).reshape(img.height, img.width, 4)
         rotated_img = rotate(img, 10, reshape=True)
         rotated_img = rotated_img[
             int(rotated_img.shape[0] / 5) : rotated_img.shape[0],
@@ -240,8 +242,8 @@ class NewDesignPizzaDashboard(PizzaDashboard):
         img = CachedPlayerImageHelper(self.PLAYER_IMAGE_CACHE_URL).get_player_image(player_id)
         if img is None:
             return
-        img = np.array(list(img.convert('RGBA').getdata())).reshape(img.height, img.width, 4)
-        
+        img = np.array(list(img.convert("RGBA").getdata())).reshape(img.height, img.width, 4)
+
         img = np.array(img)
         if not self.PRESERVE_FULLSIZE_CUTOUT:
             img = img[
