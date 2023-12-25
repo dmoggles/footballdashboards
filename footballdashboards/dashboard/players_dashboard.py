@@ -56,7 +56,6 @@ class MatchDashboard(Dashboard):
         return pitch
 
     def _setup_figure(self, pitch) -> PlotReturnType:
-
         fig, axes = make_grid(
             pitch,
             nrows=self.GRID_NROWS,
@@ -317,6 +316,7 @@ class PlayerMatchDefensiveDashboard(MatchDashboard):
         )
 
     def _plot_pitches(self, data, pitch, ax):
+        data = data[data["event_type"] != EventType.Card]
         names = extract_names_sorted_by_position(data, exclude_positions=["GK"])
         draw_defensive_event_legend(
             ax["endnote"],
