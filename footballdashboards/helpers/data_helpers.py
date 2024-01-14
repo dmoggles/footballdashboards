@@ -3,7 +3,6 @@ from footballdashboards.helpers import formatters
 
 
 def lineup_card(data):
-
     lineup_card = (
         data[["shirt_number", "player_name", "position"]]
         .groupby(["shirt_number"])
@@ -58,6 +57,7 @@ def extract_names_sorted_by_position(data, exclude_positions=None):
     list_of_names = (
         data.loc[
             (~data["player_name"].isna())
+            & (data["isTouch"] == 1)
             & (~data["player_name"].isin(subs))
             & (~data["position"].isin(exclude_positions))
         ]
