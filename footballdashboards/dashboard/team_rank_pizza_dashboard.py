@@ -25,8 +25,8 @@ class TeamRankRadarDashboard(Dashboard):
         description="circle line colour", default=STRAIGHT_LINE_COLOUR_DEFAULT
     )
 
-    @classmethod
-    def datasource_name(cls) -> str:
+    @property
+    def datasource_name(self) -> str:
         return "TeamRankComparision"
 
     def _required_data_columns(self) -> Dict[str, str]:
