@@ -30,7 +30,7 @@ class TeamRankRadarDashboard(Dashboard):
         return "TeamRankComparision"
 
     def _required_data_columns(self) -> Dict[str, str]:
-        {}
+        return {}
 
     def _plot_data(self, data: pd.DataFrame) -> PlotReturnType:
         fig, axes = self._setup_figure()
