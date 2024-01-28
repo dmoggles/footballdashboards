@@ -121,7 +121,27 @@ class TeamRankRadarDashboard(Dashboard):
             )
         game_texts = [f"Games: {r['games']:.0f}" for _, r in data.iterrows()]
         self._draw_line(ax, n_teams, game_texts, mid_points, 0.15, 0)
-        self._draw_line(ax, n_teams, data["season"].values, mid_points, 0.15, 0.85)
+        league_shorts = {
+            "EFL Championship": "Championship",
+            "EFL League One": "League One",
+            "Brasilian Serie A": "Brasileiro",
+            "Argentine Primera": "Primera",
+            "Jupiler Pro League": "JPL",
+        }
+        self._draw_line(
+            ax,
+            n_teams,
+            [
+                f"{s} - {l}"
+                for s, l in zip(
+                    data["season"].values,
+                    data["decorated_league_name"].apply(lambda x: league_shorts.get(x, x)).values,
+                )
+            ],
+            mid_points,
+            0.15,
+            0.85,
+        )
 
     def _draw_line(self, ax, n_teams: int, texts: List[int], mid_points, height, bottom):
         height = height + bottom
