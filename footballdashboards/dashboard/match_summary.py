@@ -10,6 +10,8 @@ from footballdashboards.helpers.fonts import font_bold, font_normal, font_italic
 from footballdashboards.helpers.mclachbot_helpers import McLachBotBadgeService
 from footballdashboards.dashboard.dashboard import Dashboard
 from footballdashboards._types._dashboard_fields import ColorField, FigSizeField
+from footballmodels.opta.actions import set_piece_second_ball, open_play_second_ball
+from footballmodels.opta.event_type import EventType as FootballmodelsEventType
 
 
 @event_aggregator
@@ -23,6 +25,20 @@ def open_play_box_entries(data):
             | (data["event_type"] == EventType.Carry)
         )
     )
+
+
+def total_second_balls(data):
+    data = data.copy()
+
+    data["event_type"] = data["event_type"].apply(lambda x: FootballmodelsEventType(x.value))
+    data = data.loc[data["event_type"] != FootballmodelsEventType.Carry]
+    data["total_second_balls"] = (set_piece_second_ball(data) | open_play_second_ball(data)).astype(
+        int
+    )
+    group = data.groupby("team").agg({"total_second_balls": "sum"}).to_dict()["total_second_balls"]
+    home = data.loc[data["is_home_team"] == True, "team"].iloc[0]
+    away = data.loc[data["is_home_team"] == False, "team"].iloc[0]
+    return (group[home], group[away])
 
 
 @event_aggregator
@@ -171,6 +187,11 @@ stats = [
     MatchStat("Interceptions", stat_wrapper(agg.interceptions)),
     MatchStat("Ground Duels Won", stat_wrapper(agg.ground_duels_won)),
     MatchStat("Aerial Duels Won", stat_wrapper_success(agg.aerials)),
+    MatchStat(
+        "Second Balls Won",
+        total_second_balls,
+        precision=0,
+    ),
     MatchStat("Fouls", stat_wrapper(agg.fouls_conceded), reverse_success=True),
     MatchStat("Yellow Cards", stat_wrapper(agg.yellow_cards), reverse_success=True),
     MatchStat("Red Cards", stat_wrapper(agg.red_cards), reverse_success=True),
@@ -192,7 +213,7 @@ class MatchSummaryDashboard(Dashboard):
     def _required_data_columns(self):
         return {}
 
-    def _prep_fig(self, figsize=(8, 8)) -> Tuple[Figure, Axes]:
+    def _prep_fig(self, figsize=(8, 8.5)) -> Tuple[Figure, Axes]:
         fig = Figure(figsize=figsize, facecolor=self.facecolor)
         ax = fig.add_axes([0, 0, 1, 1])
         ax.set_facecolor(self.facecolor)
@@ -283,11 +304,12 @@ class MatchSummaryDashboard(Dashboard):
         ax3.axis("off")
 
     def draw_data(self, data, ax):
+        vertical_spacing = 0.0475
         for i, match_stat in enumerate(stats):
             if match_stat.parenthesis is not None:
                 ax.text(
                     0.5,
-                    0.83 - i * 0.05,
+                    0.83 - i * vertical_spacing,
                     f"{match_stat}",
                     color=self.textcolor,
                     va="center",
@@ -316,7 +338,7 @@ class MatchSummaryDashboard(Dashboard):
 
                 ax.text(
                     0.15,
-                    0.83 - i * 0.05,
+                    0.83 - i * vertical_spacing,
                     f"{match_stat.format(home_stat)}{'%' if match_stat.main_pct else ''} ({match_stat.format(home_parenthesis_stat)}{'%' if match_stat.parenthesis_pct else ''})",
                     color=home_color,
                     va="center",
@@ -326,7 +348,7 @@ class MatchSummaryDashboard(Dashboard):
                 )
                 ax.text(
                     0.85,
-                    0.83 - i * 0.05,
+                    0.83 - i * vertical_spacing,
                     f"{match_stat.format(away_stat)}{'%' if match_stat.main_pct else ''} ({match_stat.format(away_parenthesis_stat)}{'%' if match_stat.parenthesis_pct else ''})",
                     color=away_color,
                     va="center",
@@ -338,7 +360,7 @@ class MatchSummaryDashboard(Dashboard):
             else:
                 ax.text(
                     0.5,
-                    0.83 - i * 0.05,
+                    0.83 - i * vertical_spacing,
                     f"{match_stat.name}",
                     color=self.textcolor,
                     va="center",
@@ -362,7 +384,7 @@ class MatchSummaryDashboard(Dashboard):
                     away_color = self.neutral_color
                 ax.text(
                     0.15,
-                    0.83 - i * 0.05,
+                    0.83 - i * vertical_spacing,
                     f"{match_stat.format(home_stat)}{'%' if match_stat.main_pct else ''}",
                     color=home_color,
                     va="center",
@@ -372,7 +394,7 @@ class MatchSummaryDashboard(Dashboard):
                 )
                 ax.text(
                     0.85,
-                    0.83 - i * 0.05,
+                    0.83 - i * vertical_spacing,
                     f"{match_stat.format(away_stat)}{'%' if match_stat.main_pct else ''}",
                     color=away_color,
                     va="center",
@@ -382,7 +404,7 @@ class MatchSummaryDashboard(Dashboard):
                 )
             if i < (len(stats) - 1):
                 ax.hlines(
-                    [0.805 - i * 0.05],
+                    [0.805 - i * vertical_spacing],
                     0.1,
                     0.9,
                     color=self.textcolor,

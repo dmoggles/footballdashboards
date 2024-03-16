@@ -172,8 +172,13 @@ class MatchShotDashboard(Dashboard):
                 [EventType.ShotOnPost, EventType.MissedShots, EventType.SavedShot]
             )
         ].copy()
-        goals = data.loc[data["event_type"] == EventType.Goal].copy()
-        own_goals = goals.loc[WF.col_has_qualifier(goals, qualifier_code=28)].copy()
+        goals = data.loc[
+            (data["event_type"] == EventType.Goal)
+            & (~WF.col_has_qualifier(data, qualifier_code=28))
+        ].copy()
+        own_goals = data.loc[
+            (data["event_type"] == EventType.Goal) & (WF.col_has_qualifier(data, qualifier_code=28))
+        ].copy()
         if len(shots) > 0:
             pitch.scatter(
                 shots["x"],
