@@ -120,6 +120,7 @@ class NewStyleRadarDashboard(RadarDashboard):
         league_name: str,
         season: str,
         age: str,
+        date_label: str,
         ax: Axes,
         side: str,
     ):
@@ -154,6 +155,17 @@ class NewStyleRadarDashboard(RadarDashboard):
                 va="top",
                 zorder=10,
             )
+            ax.text(
+                0.05,
+                -0.08,
+                date_label,
+                fontproperties=font_italic.prop,
+                fontsize=9,
+                ha="left",
+                va="top",
+                zorder=10,
+            )
+
         else:
             ax.text(
                 0.95,
@@ -173,6 +185,16 @@ class NewStyleRadarDashboard(RadarDashboard):
                 fontsize=10,
                 ha="right",
                 va="bottom",
+                zorder=10,
+            )
+            ax.text(
+                0.95,
+                -0.08,
+                date_label,
+                fontproperties=font_italic.prop,
+                fontsize=9,
+                ha="right",
+                va="top",
                 zorder=10,
             )
 
@@ -223,6 +245,8 @@ class NewStyleRadarDashboard(RadarDashboard):
         age_2 = data["Age"].iloc[1]
         minutes_1 = data["Minutes"].iloc[0]
         minutes_2 = data["Minutes"].iloc[1]
+        date_label_1 = data["DateLabel"].iloc[0]
+        date_lable_2 = data["DateLabel"].iloc[1]
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
         self._place_team_logo(image_name_1, image_league_1, ax, fig, side="left")
@@ -230,10 +254,10 @@ class NewStyleRadarDashboard(RadarDashboard):
         self._draw_line(ax)
         self._draw_name(player_1_name, player_2_name, ax)
         self._draw_subheader(
-            minutes_1, team_1_name, competition_1, season_1, age_1, ax, side="left"
+            minutes_1, team_1_name, competition_1, season_1, age_1, date_label_1, ax, side="left"
         )
         self._draw_subheader(
-            minutes_2, team_2_name, competition_2, season_2, age_2, ax, side="right"
+            minutes_2, team_2_name, competition_2, season_2, age_2, date_lable_2, ax, side="right"
         )
         self._plot_cutout(data["player_id"].iloc[0], ax, side="left")
         self._plot_cutout(data["player_id"].iloc[1], ax, side="right")

@@ -94,6 +94,7 @@ class RadarDashboard(Dashboard):
                 "image_league",
                 "All Competitions",
                 "Template Name",
+                "DateLabel",
             ]
             and "__value" not in c
         ]
@@ -159,9 +160,11 @@ class RadarDashboard(Dashboard):
         ax.text(
             0.01 + get_aspect(ax),
             1.0,
-            smart_name_formatter(player_1_name)
-            if len(player_1_name) > 18
-            else full_name_formatter(player_1_name),
+            (
+                smart_name_formatter(player_1_name)
+                if len(player_1_name) > 18
+                else full_name_formatter(player_1_name)
+            ),
             ha="left",
             va="top",
             color=self.radar_colors[0],
@@ -172,9 +175,11 @@ class RadarDashboard(Dashboard):
         ax.text(
             0.99 - get_aspect(ax),
             1.0,
-            smart_name_formatter(player_2_name)
-            if len(player_2_name) > 18
-            else full_name_formatter(player_2_name),
+            (
+                smart_name_formatter(player_2_name)
+                if len(player_2_name) > 18
+                else full_name_formatter(player_2_name)
+            ),
             ha="right",
             va="top",
             color=self.radar_colors[1],

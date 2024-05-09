@@ -202,7 +202,14 @@ class NewDesignPizzaDashboard(PizzaDashboard):
             return f"{season}/{str(season+1)[-2:]} season"
 
     def _draw_subheader(
-        self, minutes: str, team_name: str, league_name: str, season: str, age: str, ax: Axes
+        self,
+        minutes: str,
+        team_name: str,
+        league_name: str,
+        season: str,
+        age: str,
+        date_label: str,
+        ax: Axes,
     ):
         tokens = league_name.split(",")
         if len(tokens) > 1:
@@ -214,6 +221,8 @@ class NewDesignPizzaDashboard(PizzaDashboard):
         season_str = self._format_season(season, league_name)
         full_str1 = f"{minutes:.0f} minutes | {age:.0f} years old"
         full_str2 = f"{team_name} | {league_name.replace(',',', ')} | {season_str}"
+        # if date_label:
+        #    full_str2 = f"{full_str2} | {date_label}"
         ax.text(
             0.05,
             0.25,
@@ -234,6 +243,19 @@ class NewDesignPizzaDashboard(PizzaDashboard):
             va="bottom",
             zorder=10,
         )
+        if date_label:
+            ax.text(
+                0.05,
+                -0.08,
+                date_label,
+                fontproperties=font_italic.prop,
+                fontsize=9,
+                ha="left",
+                va="top",
+                color=self.textcolor,
+                alpha=0.7,
+                zorder=10,
+            )
 
     def _plot_cutout(self, player_id: str, ax: Axes):
         aspect = get_aspect(ax)
@@ -261,9 +283,10 @@ class NewDesignPizzaDashboard(PizzaDashboard):
         league_name = data["Competition"].unique()[0]
         season = data["Season"].unique()[0]
         player_id = data["player_id"].unique()[0]
+        date_label = data["DateLabel"].unique()[0]
         age = data["Age"].unique()[0]
         self._place_team_logo(team_image, league_image, ax, fig)
         self._draw_line(team_image, league_image, ax)
         self._draw_name(player_name, ax)
-        self._draw_subheader(minutes, team_name, league_name, season, age, ax)
+        self._draw_subheader(minutes, team_name, league_name, season, age, date_label, ax)
         self._plot_cutout(player_id, ax)

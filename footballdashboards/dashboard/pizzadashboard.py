@@ -212,6 +212,7 @@ class PizzaDashboard(Dashboard):
                 "image_team",
                 "image_league",
                 "All Competitions",
+                "DateLabel",
             ]
             and "__value" not in c
         ]
@@ -236,9 +237,9 @@ class PizzaDashboard(Dashboard):
             straight_line_color=self.straight_line_color,
             straight_line_lw=1,
             last_circle_lw=0,  # linewidth of last circle
-            other_circle_lw=1
-            if self.number_of_inner_grid_rings > 0
-            else 0,  # linewidth of inner circles
+            other_circle_lw=(
+                1 if self.number_of_inner_grid_rings > 0 else 0
+            ),  # linewidth of inner circles
             inner_circle_size=10,  # size of inner circle
         )
         if set(param_value_columns).issubset(data.columns):
@@ -464,9 +465,9 @@ class TeamPizzaDashboard(Dashboard):
             straight_line_color=self.straight_line_color,
             straight_line_lw=1,
             last_circle_lw=0,  # linewidth of last circle
-            other_circle_lw=1
-            if self.number_of_inner_grid_rings > 0
-            else 0,  # linewidth for other circles
+            other_circle_lw=(
+                1 if self.number_of_inner_grid_rings > 0 else 0
+            ),  # linewidth for other circles
             inner_circle_size=10,  # size of inner circle
         )
         pypizza.make_pizza(
