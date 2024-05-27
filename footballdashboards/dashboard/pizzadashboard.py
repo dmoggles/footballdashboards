@@ -340,6 +340,7 @@ class TeamPizzaDashboard(Dashboard):
         return fig, axes
 
     def _plot_title(self, data: pd.DataFrame, ax: Axes) -> Axes:
+        date_label = data["DateLabel"].values[0]
         ax.text(
             0.02,
             1.0,
@@ -396,6 +397,20 @@ class TeamPizzaDashboard(Dashboard):
             except:
                 pass
 
+        if date_label is not None and date_label != "":
+            ax.text(
+                0.02,
+                -0.1,
+                date_label,
+                fontproperties=font_italic.prop,
+                fontsize=9,
+                ha="left",
+                va="top",
+                color=self.textcolor,
+                alpha=0.7,
+                zorder=10,
+            )
+
         self._add_inverse_explanation(ax, data)
         return ax
 
@@ -441,6 +456,7 @@ class TeamPizzaDashboard(Dashboard):
                 "All Leagues",
                 "Decorated League",
                 "Decorated Team",
+                "DateLabel",
             ]
             and "__value" not in c
         ]
