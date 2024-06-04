@@ -154,17 +154,28 @@ class ScatterDashboard(Dashboard):
         filters = json.loads(data["filter_data"].iloc[0])
         minutes = filters["minutes_filter"]
         position_filter = filters["position_filter"]
+        age_filter = filters["age_filter"]
+        if age_filter[1] < 40:
+            age_str = f"U{age_filter[1]} "
+        else:
+            age_str = ""
         if position_filter:
             position_str = ", ".join([f"{p}s" for p in position_filter])
             # replace the last comma with an and
             position_str = position_str.rsplit(", ", 1)
             if len(position_str) > 1:
                 position_str = " and ".join(position_str)
+            else:
+                position_str = position_str[0]
 
         else:
             position_str = "All Positions"
         if minutes > 0:
-            position_str += f" with >{minutes:.0f}'"
+            minutes_str = f" with >{minutes:.0f}'"
+        else:
+            minutes_str = ""
+
+        age_pos_minutes_str = f"{age_str}{position_str}{minutes_str}"
 
         if self.title:
             title_text = self.title
@@ -180,7 +191,7 @@ class ScatterDashboard(Dashboard):
         second_line_str += " | "
         second_line_str += f"Season {data['season'].iloc[0]}"
         second_line_str += " | "
-        second_line_str += position_str
+        second_line_str += age_pos_minutes_str
         ax.text(
             0.0,
             0.5,
