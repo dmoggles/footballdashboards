@@ -266,7 +266,7 @@ class ScatterDashboard(Dashboard):
                     row[annotated_column],
                     ha="left",
                     va="bottom",
-                    size=11,
+                    size=9,
                     fontproperties=font_normal.prop,
                     # bbox=props,
                     zorder=30,
@@ -282,8 +282,8 @@ class ScatterDashboard(Dashboard):
             # force_explode=(0.2,1),
             ensure_inside_axes=True,
             avoid_self=True,
-            arrowprops=dict(arrowstyle="simple", color="black", lw=1),
-            zorder=30,
+            arrowprops=dict(arrowstyle="simple", color="orange", lw=1),
+            zorder=29,
         )
 
     def _draw_scatter(self, data: DataFrame, ax: Axes, fig: Figure, footer_ax: Axes):
