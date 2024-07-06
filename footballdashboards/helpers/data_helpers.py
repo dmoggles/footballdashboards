@@ -69,5 +69,5 @@ def extract_names_sorted_by_position(data, exclude_positions=None):
         + subs.tolist()
     )
     if len(list_of_names) > 15:
-        list_of_names = list_of_names[:16]
+        list_of_names = list_of_names[:15]
     return list_of_names
