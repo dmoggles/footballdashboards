@@ -160,6 +160,8 @@ class ScatterDashboard(Dashboard):
             position_str = position_str.rsplit(", ", 1)
             if len(position_str) > 1:
                 position_str = " and ".join(position_str)
+            else:
+                position_str = position_str[0]
 
         else:
             position_str = "All Positions"
@@ -222,14 +224,16 @@ class ScatterDashboard(Dashboard):
         cbar = fig.colorbar(scatter, cax=cax, orientation="vertical", aspect=100)
         cbar.set_label(color_axis_name)
         cbar.set_ticks([0, 0.2, 0.4, 0.6, 0.8, 1])
+        min = color_axis.min()
+        max = color_axis.max()
         cbar.set_ticklabels(
             [
-                f"{color_axis.min():.2f}",
-                f"{color_axis.quantile(0.2):.2f}",
-                f"{color_axis.quantile(0.4):.2f}",
-                f"{color_axis.quantile(0.6):.2f}",
-                f"{color_axis.quantile(0.8):.2f}",
-                f"{color_axis.max():.2f}",
+                f"{min:.2f}",
+                f"{min + (max-min)*0.2:.2f}",
+                f"{min + (max-min)*.4:.2f}",
+                f"{min + (max-min)*.6:.2f}",
+                f"{min + (max-min)*.8:.2f}",
+                f"{max:.2f}",
             ],
             fontproperties=font_normal.prop,
         )
