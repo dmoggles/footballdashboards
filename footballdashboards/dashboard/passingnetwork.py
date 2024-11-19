@@ -379,13 +379,15 @@ class PassNetworkDashboard(Dashboard):
             line_alpha=0.5,
         )
         small_pitch.draw(small_pitch_ax)
-        positions_dict = small_pitch.get_formation(formation)
+        positionslist = small_pitch.get_formation(formation)
         try:
             color = TeamColorHelper().get_colours(league, team)[0]
         except:
             color = "black"
-        for position in positions_dict:
-            x, y = positions_dict[position].x, positions_dict[position].y
+        
+    
+        for position in positionslist:
+            x, y = position.x, position.y
             small_pitch.scatter(x, y, color=color, s=30, ax=small_pitch_ax)
 
         return fig, axes
