@@ -132,7 +132,10 @@ class NewStyleRadarDashboard(RadarDashboard):
                 + "*"
             )
         season_str = self._format_season(season, league_name)
-        full_str1 = f"{minutes:.0f} minutes | {age:.0f} years old"
+        if age:
+            full_str1 = f"{minutes:.0f} minutes | {age:.0f} years old"
+        else:
+            full_str1 = f"{minutes:.0f} minutes"
         full_str2 = f"{team_name} | {league_name.replace(',',', ')} | {season_str}"
         if side == "left":
             ax.text(
