@@ -122,9 +122,10 @@ class PassNetworkDashboard(Dashboard):
             line_alpha=0.5,
         )
         pitch.draw(ax=ax)
-        logo_ax = pitch.inset_axes(6, 6 / 65 * 105, 11, 11 / 65 * 105, ax=ax, zorder=200)
-        logo_ax.axis("off")
-        logo_ax.imshow(get_ball_logo2())
+        #logo_ax = pitch.inset_axes(6, 6 / 65 * 105, 11, 11 / 65 * 105, ax=ax, zorder=200)
+        #logo_ax.axis("off")
+        #logo_ax.imshow(get_ball_logo2())
+        pitch.inset_image(6, 6 / 65 * 105, get_ball_logo2(), 15,  ax=ax, zorder=200)
 
         return pitch
 

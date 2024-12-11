@@ -60,9 +60,10 @@ class MatchShotDashboard(Dashboard):
             "opta", pitch_color=self.facecolor, linewidth=1, line_color=self.textcolor
         )
         pitch.draw(ax=axes["pitch"])
-        logo_ax = pitch.inset_axes(6, 6 / 65 * 105, 11, 11 / 65 * 105, ax=axes["pitch"], zorder=200)
-        logo_ax.axis("off")
-        logo_ax.imshow(get_ball_logo2())
+        #logo_ax = pitch.inset_axes(6, 6 / 65 * 105, 11, 11 / 65 * 105, ax=axes["pitch"], zorder=200)
+        #logo_ax.axis("off")
+        #logo_ax.imshow(get_ball_logo2())
+        pitch.inset_image(6, 6 / 65 * 105, get_ball_logo2(), 15,  ax=axes["pitch"], zorder=200)
         return fig, axes, pitch
 
     def _plot_on_pitch_logos(
@@ -74,10 +75,10 @@ class MatchShotDashboard(Dashboard):
         pitch: VerticalPitch,
     ):
         for i, img_name in zip([1, -1], [home_team_image_name, away_team_image_name]):
-            img_ax = pitch.inset_axes(50 + i * 15, 50, 20, 20 * get_aspect(ax), ax=ax)
-            img_ax.axis("off")
-
-            img_ax.imshow(McLachBotBadgeService().team_badge(league_name, img_name), alpha=0.2)
+            #img_ax = pitch.inset_axes(50 + i * 15, 50, 20, 20 * get_aspect(ax), ax=ax, zorder=200)
+            #img_ax.axis("off")
+            #img_ax.imshow(McLachBotBadgeService().team_badge(league_name, img_name), zorder=200)
+            pitch.inset_image(50 + i * 15, 50, McLachBotBadgeService().team_badge(league_name, img_name), 30, ax=ax, alpha=0.2)
 
     @staticmethod
     def _player_name_format(name: str) -> str:
