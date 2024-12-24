@@ -13,7 +13,9 @@ from urllib.request import urlopen
 from PIL import Image
 
 
-class RollingNPxGDashboard(Dashboard):
+
+
+class RollingNPxGDashboardBase(Dashboard):
     FIG_SIZE_DEFAULT = (15, 16)
 
     fig_size = FigSizeField(description="Figure size", default=FIG_SIZE_DEFAULT)
@@ -146,7 +148,8 @@ class RollingNPxGDashboard(Dashboard):
 
     def _plot_title(self, data, ax: Axes):
         league = data["league"].iloc[0]
-        season = data["season"].iloc[0]
+        seasons = data["season"].iloc[0].split(", ")
+
         team = data["team"].iloc[0]
         team_img = data["team_img"].iloc[0]
         rolling_window = data["rolling_window"].iloc[0]
@@ -175,7 +178,13 @@ class RollingNPxGDashboard(Dashboard):
             transform=ax.transAxes,
             color=self.textcolor,
         )
-        subtitle = f"{season} season - {rolling_window} game rolling window"
+        if len(seasons)==1:
+            season_txt = f"{seasons[0]} season"
+        else:
+            seasons = sorted(seasons)
+            season_txt = f"{seasons[0]} - {seasons[-1]} seasons"
+
+        subtitle = f"{season_txt} - {rolling_window} game rolling window"
         ax.text(
             0.1,
             0.2,
@@ -239,3 +248,14 @@ class RollingNPxGDashboard(Dashboard):
         self._add_watermark(axes["plot"])
 
         return fig, axes
+
+
+class RollingNPxGDashboard(RollingNPxGDashboardBase):
+    @property
+    def datasource_name(self) -> str:
+        return "rolling_npxg"
+    
+class RollingNPxGByDateDashboard(RollingNPxGDashboardBase):
+    @property
+    def datasource_name(self) -> str:
+        return "rolling_npxg_by_date"
