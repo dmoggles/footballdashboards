@@ -142,8 +142,10 @@ class CachedPlayerImageHelper:
             return None
         return Image.open(os.path.join(self.cache_dir, f"{player_id}.png"))
 
-    def _get_player_image(self, player_id: int) -> Any:
+    def _get_player_image(self, player_id: int, ws:bool=False) -> Any:
         full_url = f"{self.url}/player_cutout/{player_id}"
+        if ws:
+            full_url += "?source=ws"
         try:
             r = requests.get(full_url)
             if r.status_code == 200:
@@ -157,8 +159,8 @@ class CachedPlayerImageHelper:
         except HTTPError:
             return None
 
-    def get_player_image(self, player_id: int) -> Any:
+    def get_player_image(self, player_id: int, ws:bool=False) -> Any:
         if self._check_cached_image(player_id):
             return self._get_cached_image(player_id)
         else:
-            return self._get_player_image(player_id)
+            return self._get_player_image(player_id, ws=ws)

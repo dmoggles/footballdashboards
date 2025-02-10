@@ -43,7 +43,7 @@ class RegularPassComplete(PassTypeDefinition):
 
     @classmethod
     def _line_kwargs(cls):
-        return {"color": "#e512c5", "zorder": 6}
+        return {"color": "#e6b0aa", "zorder": 5}
 
 
 class RegularPassIncomplete(PassTypeDefinition):
@@ -57,7 +57,7 @@ class RegularPassIncomplete(PassTypeDefinition):
 
     @classmethod
     def _line_kwargs(cls):
-        return {"color": "#6d135f", "zorder": 5}
+        return {"color": "#943126", "zorder": 6}
 
 
 class ProgressivePassComplete(PassTypeDefinition):
@@ -71,7 +71,7 @@ class ProgressivePassComplete(PassTypeDefinition):
 
     @classmethod
     def _line_kwargs(cls):
-        return {"color": "#1157da", "zorder": 6}
+        return {"color": "#aed6f1", "zorder": 5}
 
 
 class ProgressivePassIncomplete(PassTypeDefinition):
@@ -85,7 +85,7 @@ class ProgressivePassIncomplete(PassTypeDefinition):
 
     @classmethod
     def _line_kwargs(cls):
-        return {"color": "#133779", "zorder": 5}
+        return {"color": "#2874a6", "zorder": 6}
 
 
 class CutbacksComplete(PassTypeDefinition):
@@ -99,7 +99,7 @@ class CutbacksComplete(PassTypeDefinition):
 
     @classmethod
     def _line_kwargs(cls):
-        return {"color": "#10C22B", "zorder": 6}
+        return {"color": "#58d68d", "zorder": 5}
 
 
 class CutbacksIncomplete(PassTypeDefinition):
@@ -113,4 +113,4 @@ class CutbacksIncomplete(PassTypeDefinition):
 
     @classmethod
     def _line_kwargs(cls):
-        return {"color": "#105c1b", "zorder": 5}
+        return {"color": "#1d8348", "zorder": 6}
