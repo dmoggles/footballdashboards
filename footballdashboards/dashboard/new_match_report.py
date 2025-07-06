@@ -108,12 +108,12 @@ def generate_match_stats(data):
     data = data[~data["event_type"].isin([EventType.OffsideGiven])].copy()
     data["kickoff"] = is_kickoff(data)
     possession_id_dict = data.groupby("possession_number").apply(
-        lambda x: assign_possession_team_id(x)
+        lambda x: assign_possession_team_id(x), include_groups=False
     )
 
     data["possession_owner"] = data["possession_number"].map(possession_id_dict)
     poss_data = data.groupby(["season", "competition", "matchId", "possession_number"]).apply(
-        possession_operations
+        possession_operations, include_groups=False
     )
     poss_data.index = poss_data.index.droplevel(4)
     data["ppda_a"] = ppda_qualifying_defensive_actions(data)
@@ -1474,6 +1474,7 @@ class PlayerStats:
 
     @staticmethod
     def progressive_distance(data):
+        data = data.copy()
         data["distance"] = pd_f(data)
         data["distance"] = np.maximum(
             data["distance"]
@@ -1486,6 +1487,7 @@ class PlayerStats:
 
     @staticmethod
     def defensive_actions(data):
+        data = data.copy()
         data["def_action"] = (
             data["event_type"].isin(
                 [
@@ -1663,12 +1665,13 @@ class PlayerStats:
         def_actions = PlayerStats.defensive_actions(data)
         xa = PlayerStats.calc_xa(data)
         assists = PlayerStats.calc_assists(data)
-        data["duels_won"] = ground_duels_won(data) + aerial_duels_won(data)
-        duels_won = data.groupby("player_name")["duels_won"].sum().to_dict()
+        data_copy = data.copy()
+        data_copy["duels_won"] = ground_duels_won(data_copy) + aerial_duels_won(data_copy)
+        duels_won = data_copy.groupby("player_name")["duels_won"].sum().to_dict()
         pp_received = PlayerStats.progressive_pass_received(data)
         bbox_props = dict(boxstyle="circle,pad=0.1", fc=team_color, ec=team_color, lw=0.5)
-        data["box_entry"] = open_play_box_entry(data)
-        box_entries = data.groupby("player_name")["box_entry"].sum().to_dict()
+        data_copy["box_entry"] = open_play_box_entry(data_copy)
+        box_entries = data_copy.groupby("player_name")["box_entry"].sum().to_dict()
         for i, name in enumerate(names):
             if name in sub_ons["player_name"].values:
                 ax.scatter(
@@ -2040,11 +2043,12 @@ class PassNetworks:
         ]
 
         data = data[data["is_home_team"] == is_home_team]
-        data["is_successful"] = data["outcomeType"] == 1
         data = data[data["event_type"].isin(VALID_EVENTS)]
         data = data[
             data["formation"] == data[data["formation"].notnull()]["formation"].iloc[0]
         ].copy()
+        
+        data["is_successful"] = data["outcomeType"] == 1
 
         data["position"] = data["position"].apply(
             lambda x: x.replace("C", "") if isinstance(x, str) and len(x) == 4 else x
