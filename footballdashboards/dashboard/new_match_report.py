@@ -52,6 +52,30 @@ import highlight_text as ht
 from footballdashboards.helpers.mclachbot_helpers import get_ball_logo2
 from footballdashboardsdata.funnels.funnel_api import get_dataframe_for_match
 
+def fix_own_goals(data:pd.DataFrame) -> pd.DataFrame:
+        """
+        Fix own goals by subtracting the xthreat value from the team that conceded the goal
+        """
+        data = data.copy()
+        data['own_goal']=0
+        goals = data[data["event_type"] == EventType.Goal]
+        own_goals = goals[col_has_qualifier(goals, display_name="OwnGoal")]
+        if not own_goals.empty:
+            both_team_ids = data["teamId"].unique()
+            both_teams_names = data['team'].unique()
+            for i, row in own_goals.iterrows():
+                data.loc[i, 'x'] = 100 - row['x']
+                data.loc[i, 'y'] = 100 - row['y']
+                data.loc[i, 'is_home_team'] = 1 - row['is_home_team']
+                data.loc[i, 'team'] = next(
+                    team for team in both_teams_names if team != row['team']
+                )
+                data.loc[i, 'teamId'] = next(
+                    team_id for team_id in both_team_ids if team_id != row['teamId']
+                )
+                data.loc[i, 'own_goal'] = 1
+        return data
+
 
 def color_name_to_hex(color_name):
     try:
@@ -598,6 +622,7 @@ class GameFlow:
             bar.set_path_effects(patheffects_top)
         for bar in bars_bottom:
             bar.set_path_effects(patheffects_bottom)
+    
 
     @staticmethod
     def place_goals(ax: Axes, data: pd.DataFrame, args: Dict[str, Any]):
@@ -608,6 +633,7 @@ class GameFlow:
         """
         home_goals = data[(data["is_home_team"] == 1) & (data["goals"] > 0)]
         away_goals = data[(data["is_home_team"] == 0) & (data["goals"] > 0)]
+        
 
         for i, r in home_goals.iterrows():
             n_goals = r["goals"]
@@ -662,6 +688,7 @@ class GameFlow:
         """
         processed_data = (
             raw_data.copy()
+            .pipe(fix_own_goals)
             .pipe(GameFlow.assign_xthreat_to_events)
             .pipe(GameFlow.bin_data_into_minutes, max_xthreat_value=0.2)
             .pipe(GameFlow.fill_missing_minutes)
@@ -809,12 +836,18 @@ class ShotMap:
             & (data["is_home_team"] == 0)
         ].copy()
         home_goals = data[
-            (data["event_type"] == EventType.Goal) & (data["is_home_team"] == 1)
+            (data["event_type"] == EventType.Goal) & (data["is_home_team"] == 1) & (data["own_goal"] == False)
         ].copy()
         away_goals = data[
-            (data["event_type"] == EventType.Goal) & (data["is_home_team"] == 0)
+            (data["event_type"] == EventType.Goal) & (data["is_home_team"] == 0) & (data["own_goal"] == False)
         ].copy()
-        for tbl in [home_shots, away_shots, home_goals, away_goals]:
+        home_own_goals = data[
+            (data["event_type"] == EventType.Goal) & (data["is_home_team"] == 1) & (data["own_goal"] == True)
+        ].copy()
+        away_own_goals = data[
+            (data["event_type"] == EventType.Goal) & (data["is_home_team"] == 0) & (data["own_goal"] == True)
+        ].copy()
+        for tbl in [home_shots, away_shots, home_goals, away_goals, home_own_goals, away_own_goals]:
             tbl["size"] = np.power(
                 visualisation_parameters["min_xg_size"]
                 + (
@@ -861,6 +894,24 @@ class ShotMap:
             away_goals["y"],
             s=away_goals["size"],
             color=visualisation_parameters["away_team_color"],
+            ax=right_side_ax,
+            zorder=3,
+        )
+        pitch_left.scatter(
+            home_own_goals["x"],
+            home_own_goals["y"],
+            s=(visualisation_parameters['min_xg_size']*2) ** 2,
+            color=(0,0,0,0.9),
+            edgecolors=visualisation_parameters["home_team_color"],
+            ax=left_side_ax,
+            zorder=3,
+        )
+        pitch_right.scatter(
+            away_own_goals["x"],
+            away_own_goals["y"],
+            s=(visualisation_parameters['min_xg_size']*2) ** 2,
+            edgecolors=visualisation_parameters["away_team_color"],
+            color=(0,0,0,0.9),
             ax=right_side_ax,
             zorder=3,
         )
@@ -980,6 +1031,7 @@ class ShotMap:
             )
 
     def process(data, ax, visualisation_parameters):
+        data = fix_own_goals(data)
         left_side, pitch_left, right_side, pitch_right = ShotMap.setup_shot_maps(
             ax, visualisation_parameters
         )
