@@ -16,9 +16,22 @@ from footballdashboards.helpers.event_definitions import (
 from sklearn.ensemble import IsolationForest
 import numpy as np
 import math
+from enum import Enum
+from pydantic import BaseModel
 
+class Layer(Enum):
+    Complete = 'complete'
+    Incomplete = 'incomplete'
 
-def draw_passes_on_axes(ax: Axes, data: pd.DataFrame, pitch: Pitch, pass_types: List[str] = None):
+class PlotConfig(BaseModel):
+    pass_types: List[str] = []
+    top_layer: Layer = Layer.Incomplete
+    complete_alpha: float = 1.0
+    incomplete_alpha: float = 1.0
+
+def draw_passes_on_axes(ax: Axes, data: pd.DataFrame, pitch: Pitch, plot_config: PlotConfig):
+    pass_types = plot_config.pass_types
+
     data = data.copy()
     data["passtypes"] = WF.classify_passes(data)
     passes = data.loc[
@@ -28,13 +41,23 @@ def draw_passes_on_axes(ax: Axes, data: pd.DataFrame, pitch: Pitch, pass_types: 
     passtype_classes = [
         cls
         for cls in PassTypeDefinition.__subclasses__()
-        if pass_types is None or cls.__name__ in pass_types
+        if len(pass_types) == 0 or cls.__name__ in pass_types
     ]
     for passtype_class in passtype_classes:
         mask = passtype_class.mask(passes)
         select_passes = passes.loc[mask]
         if len(select_passes) > 0:
             kwargs = passtype_class.get_line_kwargs()
+            if passtype_class.is_complete():
+                kwargs["alpha"] = plot_config.complete_alpha
+            else:
+                kwargs["alpha"] = plot_config.incomplete_alpha
+            if plot_config.top_layer == Layer.Complete:
+                if passtype_class.is_complete():
+                    kwargs['zorder'] = 10
+                else:
+                    kwargs['zorder'] = 5
+
             pitch.lines(
                 select_passes["x"],
                 select_passes["y"],

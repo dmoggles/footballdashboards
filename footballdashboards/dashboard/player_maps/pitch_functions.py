@@ -5,8 +5,10 @@ from matplotlib.axes import Axes
 from mplsoccer.pitch import Pitch
 from footballmodels.opta.event_type import EventType
 from footmav.data_definitions.whoscored.constants import EventType as EventTypeOld
-from footballdashboards.helpers.pitch_helpers import draw_passes_on_axes
+from footballdashboards.helpers.pitch_helpers import draw_passes_on_axes, PlotConfig
 from footballdashboards.dashboard.player_maps.filter_applicator import apply_filters
+
+
 
 
 def draw_passes(config: Dict[str, Any], data: pd.DataFrame, figure: Figure, ax: Axes, pitch: Pitch, filters: List[Tuple[str, Any]]):
@@ -15,4 +17,8 @@ def draw_passes(config: Dict[str, Any], data: pd.DataFrame, figure: Figure, ax: 
     data["event_type"] = EventTypeOld.Pass
 
     if len(data) > 0:
-        draw_passes_on_axes(ax, data, pitch, config.get("pass_types", None))
+        if 'pass_config_map' in config:
+            pass_config = PlotConfig.model_validate(config['pass_map_config'])
+        else:
+            pass_config = PlotConfig(pass_types=config.get('pass_types', []))
+        draw_passes_on_axes(ax, data, pitch, pass_config)

@@ -1,5 +1,7 @@
+from calendar import c
 import abc
 import pandas as pd
+from typing import Dict, Any
 
 
 class PassTypeDefinition(abc.ABC):
@@ -19,7 +21,12 @@ class PassTypeDefinition(abc.ABC):
         pass
 
     @classmethod
-    def get_line_kwargs(cls):
+    @abc.abstractmethod
+    def is_complete(cls)->bool:
+        pass
+
+    @classmethod
+    def get_line_kwargs(cls)->Dict[str, Any]:
         kwargs = cls._line_kwargs()
         if "linewidth" not in kwargs:
             kwargs["linewidth"] = 3
@@ -45,6 +52,10 @@ class RegularPassComplete(PassTypeDefinition):
     def _line_kwargs(cls):
         return {"color": "#e6b0aa", "zorder": 5}
 
+    @classmethod
+    def is_complete(cls)->bool:
+        return True
+
 
 class RegularPassIncomplete(PassTypeDefinition):
     @classmethod
@@ -58,6 +69,10 @@ class RegularPassIncomplete(PassTypeDefinition):
     @classmethod
     def _line_kwargs(cls):
         return {"color": "#943126", "zorder": 6}
+
+    @classmethod
+    def is_complete(cls)->bool:
+        return False
 
 
 class ProgressivePassComplete(PassTypeDefinition):
@@ -73,6 +88,10 @@ class ProgressivePassComplete(PassTypeDefinition):
     def _line_kwargs(cls):
         return {"color": "#aed6f1", "zorder": 5}
 
+    @classmethod
+    def is_complete(cls)->bool:
+        return True
+
 
 class ProgressivePassIncomplete(PassTypeDefinition):
     @classmethod
@@ -86,6 +105,10 @@ class ProgressivePassIncomplete(PassTypeDefinition):
     @classmethod
     def _line_kwargs(cls):
         return {"color": "#2874a6", "zorder": 6}
+
+    @classmethod
+    def is_complete(cls)->bool:
+        return False
 
 
 class CutbacksComplete(PassTypeDefinition):
@@ -101,6 +124,10 @@ class CutbacksComplete(PassTypeDefinition):
     def _line_kwargs(cls):
         return {"color": "#58d68d", "zorder": 5}
 
+    @classmethod
+    def is_complete(cls)->bool:
+        return True
+
 
 class CutbacksIncomplete(PassTypeDefinition):
     @classmethod
@@ -114,3 +141,7 @@ class CutbacksIncomplete(PassTypeDefinition):
     @classmethod
     def _line_kwargs(cls):
         return {"color": "#1d8348", "zorder": 6}
+
+    @classmethod
+    def is_complete(cls)->bool:
+        return False

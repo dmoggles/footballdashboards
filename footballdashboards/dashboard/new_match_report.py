@@ -1665,13 +1665,12 @@ class PlayerStats:
         def_actions = PlayerStats.defensive_actions(data)
         xa = PlayerStats.calc_xa(data)
         assists = PlayerStats.calc_assists(data)
-        data_copy = data.copy()
-        data_copy["duels_won"] = ground_duels_won(data_copy) + aerial_duels_won(data_copy)
-        duels_won = data_copy.groupby("player_name")["duels_won"].sum().to_dict()
+        data["duels_won"] = ground_duels_won(data) + aerial_duels_won(data)
+        duels_won = data.groupby("player_name")["duels_won"].sum().to_dict()
         pp_received = PlayerStats.progressive_pass_received(data)
         bbox_props = dict(boxstyle="circle,pad=0.1", fc=team_color, ec=team_color, lw=0.5)
-        data_copy["box_entry"] = open_play_box_entry(data_copy)
-        box_entries = data_copy.groupby("player_name")["box_entry"].sum().to_dict()
+        data["box_entry"] = open_play_box_entry(data)
+        box_entries = data.groupby("player_name")["box_entry"].sum().to_dict()
         for i, name in enumerate(names):
             if name in sub_ons["player_name"].values:
                 ax.scatter(
