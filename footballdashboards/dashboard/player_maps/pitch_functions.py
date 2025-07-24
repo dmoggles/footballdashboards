@@ -17,7 +17,7 @@ def draw_passes(config: Dict[str, Any], data: pd.DataFrame, figure: Figure, ax: 
     data["event_type"] = EventTypeOld.Pass
 
     if len(data) > 0:
-        if 'pass_config_map' in config:
+        if 'pass_map_config' in config:
             pass_config = PlotConfig.model_validate(config['pass_map_config'])
         else:
             pass_config = PlotConfig(pass_types=config.get('pass_types', []))
