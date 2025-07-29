@@ -237,7 +237,7 @@ def draw_passing_stats(
     try:
         model = get_model(data["competition"].iloc[0], True)
     except ValueError:
-        model = None
+        model = get_model('epl')
     if model:
         features, _ = x_pass_features_v2(passes, True)
         passes["xPass"] = model.predict_proba(features)[:, 1]

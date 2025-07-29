@@ -79,7 +79,7 @@ def draw_title(
         img = np.array(list(img.convert("RGBA").getdata())).reshape(img.height, img.width, 4)
 
         img = np.array(img)
-        if not config.get("preserve_original_player_image", False):
+        if not config.get("preserve_original_player_image", True):
             img = img[
                 int(img.shape[0] * 0.0) : int(img.shape[0] * 0.5),
                 int(img.shape[1] * 0.25) : int(img.shape[1] * 0.75),
