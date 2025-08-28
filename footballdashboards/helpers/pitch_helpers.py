@@ -1,6 +1,6 @@
 from matplotlib.axes import Axes
 from mplsoccer import Pitch
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import pandas as pd
 from footmav.utils import whoscored_funcs as WF
 from footmav.data_definitions.whoscored.constants import EventType
@@ -29,7 +29,9 @@ class PlotConfig(BaseModel):
     complete_alpha: float = 1.0
     incomplete_alpha: float = 1.0
 
-def draw_passes_on_axes(ax: Axes, data: pd.DataFrame, pitch: Pitch, plot_config: PlotConfig):
+def draw_passes_on_axes(ax: Axes, data: pd.DataFrame, pitch: Pitch, plot_config: Optional[PlotConfig] = None):
+    if plot_config is None:
+        plot_config = PlotConfig()
     pass_types = plot_config.pass_types
 
     data = data.copy()
