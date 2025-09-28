@@ -52,29 +52,30 @@ import highlight_text as ht
 from footballdashboards.helpers.mclachbot_helpers import get_ball_logo2
 from footballdashboardsdata.funnels.funnel_api import get_dataframe_for_match
 
-def fix_own_goals(data:pd.DataFrame) -> pd.DataFrame:
-        """
-        Fix own goals by subtracting the xthreat value from the team that conceded the goal
-        """
-        data = data.copy()
-        data['own_goal']=0
-        goals = data[data["event_type"] == EventType.Goal]
-        own_goals = goals[col_has_qualifier(goals, display_name="OwnGoal")]
-        if not own_goals.empty:
-            both_team_ids = data["teamId"].unique()
-            both_teams_names = data['team'].unique()
-            for i, row in own_goals.iterrows():
-                data.loc[i, 'x'] = 100 - row['x']
-                data.loc[i, 'y'] = 100 - row['y']
-                data.loc[i, 'is_home_team'] = 1 - row['is_home_team']
-                data.loc[i, 'team'] = next(
-                    team for team in both_teams_names if team != row['team']
-                )
-                data.loc[i, 'teamId'] = next(
-                    team_id for team_id in both_team_ids if team_id != row['teamId']
-                )
-                data.loc[i, 'own_goal'] = 1
-        return data
+
+def fix_own_goals(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Fix own goals by subtracting the xthreat value from the team that conceded the goal
+    """
+    data = data.copy()
+    data["own_goal"] = 0
+    goals = data[data["event_type"] == EventType.Goal]
+    own_goals = goals[col_has_qualifier(goals, display_name="OwnGoal")]
+    if not own_goals.empty:
+        both_team_ids = data["teamId"].unique()
+        both_teams_names = data["team"].unique()
+        for i, row in own_goals.iterrows():
+            data.loc[i, "x"] = 100 - row["x"]
+            data.loc[i, "y"] = 100 - row["y"]
+            data.loc[i, "is_home_team"] = 1 - row["is_home_team"]
+            data.loc[i, "team"] = next(
+                team for team in both_teams_names if team != row["team"]
+            )
+            data.loc[i, "teamId"] = next(
+                team_id for team_id in both_team_ids if team_id != row["teamId"]
+            )
+            data.loc[i, "own_goal"] = 1
+    return data
 
 
 def color_name_to_hex(color_name):
@@ -112,15 +113,19 @@ def generate_match_stats(data):
     )
 
     data["possession_owner"] = data["possession_number"].map(possession_id_dict)
-    poss_data = data.groupby(["season", "competition", "matchId", "possession_number"]).apply(
-        possession_operations, include_groups=False
-    )
+    poss_data = data.groupby(
+        ["season", "competition", "matchId", "possession_number"]
+    ).apply(possession_operations, include_groups=False)
     poss_data.index = poss_data.index.droplevel(4)
     data["ppda_a"] = ppda_qualifying_defensive_actions(data)
     data["ppda_p"] = ppda_qualifying_passes(data)
 
     team_data = get_team_aggregation_2(data, poss_data)
-    home_away = data.groupby(["teamId"]).agg({"is_home_team": "first"}).to_dict()["is_home_team"]
+    home_away = (
+        data.groupby(["teamId"])
+        .agg({"is_home_team": "first"})
+        .to_dict()["is_home_team"]
+    )
     team_data["is_home_team"] = team_data.index.get_level_values(3).map(home_away)
     for teamId in data["teamId"].unique():
         team_data.loc[team_data.index.get_level_values(3) == teamId, "ppda"] = data.loc[
@@ -131,7 +136,7 @@ def generate_match_stats(data):
 
 def get_match_stat_history(league, conn):
     query = f"""
-    
+
 
     SELECT matchId, teamId, metric_name, value FROM agg.team_aggregations A
         JOIN
@@ -139,7 +144,7 @@ def get_match_stat_history(league, conn):
         ON A.metricId=B.id
         WHERE A.competition = '{league}'
         AND B.metric_name IN (
-            
+
             'ppda_qualifying_passes',
             'ppda_qualifying_defensive_actions',
             'circulation',
@@ -153,11 +158,13 @@ def get_match_stat_history(league, conn):
             'pct_gained',
             'open_play_box_entry',
             'second_ball_wins'
-    )        
+    )
 
     """
     data = conn.query(query)
-    data = data.pivot(index=["matchId", "teamId"], columns="metric_name", values="value").dropna()
+    data = data.pivot(
+        index=["matchId", "teamId"], columns="metric_name", values="value"
+    ).dropna()
 
     return data
 
@@ -233,13 +240,19 @@ class RoundedHelpers:
         codes, verts = zip(*path_data_1)
         path = mpath.Path(verts, codes)
         patch = mpatches.PathPatch(
-            path, facecolor="none" if filled_side == "left" else color, edgecolor=color, lw=2
+            path,
+            facecolor="none" if filled_side == "left" else color,
+            edgecolor=color,
+            lw=2,
         )
         ax.add_patch(patch)
         codes, verts = zip(*path_data_2)
         path = mpath.Path(verts, codes)
         patch = mpatches.PathPatch(
-            path, facecolor="none" if filled_side == "right" else color, edgecolor=color, lw=2
+            path,
+            facecolor="none" if filled_side == "right" else color,
+            edgecolor=color,
+            lw=2,
         )
         ax.add_patch(patch)
 
@@ -272,7 +285,6 @@ class RoundedHelpers:
 
 
 class MatchStats:
-
     @staticmethod
     def get_rank(match_data, context_data, metric_name):
         context_data["ppda"] = context_data["ppda_qualifying_defensive_actions"]
@@ -280,7 +292,10 @@ class MatchStats:
         match_id = match_data.index.get_level_values(2)[0]
         if match_id not in context_data.index.get_level_values(0):
             full_data = pd.concat(
-                [context_data, match_data.reset_index().set_index(["matchId", "teamId"])]
+                [
+                    context_data,
+                    match_data.reset_index().set_index(["matchId", "teamId"]),
+                ]
             )
         else:
             full_data = context_data
@@ -336,7 +351,9 @@ class MatchStats:
         ):
             rank_df = MatchStats.get_rank(match_data, context_data, col)
             for ha in [1, 0]:
-                team_id = match_data[match_data["is_home_team"] == ha].index.get_level_values(3)[0]
+                team_id = match_data[
+                    match_data["is_home_team"] == ha
+                ].index.get_level_values(3)[0]
                 side = ((1 - ha) * 2) - 1
                 x = 0.5 + 0.15 * side
                 v = int(match_data.loc[match_data["is_home_team"] == ha, col].values[0])
@@ -397,7 +414,6 @@ class MatchStats:
                         )
                         continue
                     if rank > (j + 1) * 0.2:
-
                         RoundedHelpers.draw_unfilled_circle(
                             ax,
                             0.5 + (0.25 * side) + (side * 0.05 * j),
@@ -432,7 +448,11 @@ class MatchStats:
         }
         MatchStats.draw_team_stats_labels(ax)
         MatchStats.draw_team_stat_values(
-            ax, match_data, context_data, team_colors, visualisation_arguments["facecolor"]
+            ax,
+            match_data,
+            context_data,
+            team_colors,
+            visualisation_arguments["facecolor"],
         )
 
 
@@ -443,13 +463,19 @@ class GameFlow:
         Assign xthreat values to each event in the data
         """
         xthreat_grid = get_xthreat_grid()
-        xt_idx_x = pd.cut(data["x"], bins=np.linspace(0, 100, 13), labels=range(12)).fillna(0)
-        xt_idx_y = pd.cut(data["y"], bins=np.linspace(0, 100, 9), labels=range(8)).fillna(0)
+        xt_idx_x = pd.cut(
+            data["x"], bins=np.linspace(0, 100, 13), labels=range(12)
+        ).fillna(0)
+        xt_idx_y = pd.cut(
+            data["y"], bins=np.linspace(0, 100, 9), labels=range(8)
+        ).fillna(0)
         data["xthreat"] = [xthreat_grid[y][x] for x, y in zip(xt_idx_x, xt_idx_y)]
         return data
 
     @staticmethod
-    def bin_data_into_minutes(data: pd.DataFrame, max_xthreat_value: float) -> pd.DataFrame:
+    def bin_data_into_minutes(
+        data: pd.DataFrame, max_xthreat_value: float
+    ) -> pd.DataFrame:
         """
         Bin the data into periods, minutes and teams and cap at the maximum xthreat value
         """
@@ -510,7 +536,9 @@ class GameFlow:
         return full_data
 
     @staticmethod
-    def calculate_xthreat_ewma(data: pd.DataFrame, minute_rolling_window: float) -> pd.DataFrame:
+    def calculate_xthreat_ewma(
+        data: pd.DataFrame, minute_rolling_window: float
+    ) -> pd.DataFrame:
         """
         Calculate the exponentially weighted moving average of the xthreat values
         """
@@ -519,13 +547,15 @@ class GameFlow:
             alpha = 2 / (minute_rolling_window + 1)
             lagging = x.ewm(alpha=alpha).mean().values
             leading = x.iloc[::-1].ewm(alpha=alpha).mean().iloc[::-1].values
-            avg = np.concatenate([leading[:5], (leading[5:-5] + lagging[5:-5]) / 2, lagging[-5:]])
+            avg = np.concatenate(
+                [leading[:5], (leading[5:-5] + lagging[5:-5]) / 2, lagging[-5:]]
+            )
 
             return pd.Series(avg, index=x.index)
 
-        data["xthreat"] = data.groupby(["team", "period", "is_home_team"])["xthreat"].transform(
-            lambda x: _compute_ewma(x, minute_rolling_window)
-        )
+        data["xthreat"] = data.groupby(["team", "period", "is_home_team"])[
+            "xthreat"
+        ].transform(lambda x: _compute_ewma(x, minute_rolling_window))
 
         return data
 
@@ -538,18 +568,29 @@ class GameFlow:
         second_period_labels = [60, 75, 90]
 
         first_period_idx = [
-            data.loc[(data["period"] == 1) & (data["minute"] == minute), "time"].values[0]
+            data.loc[(data["period"] == 1) & (data["minute"] == minute), "time"].values[
+                0
+            ]
             for minute in first_period_labels
         ]
         second_period_idx = [
-            data.loc[(data["period"] == 2) & (data["minute"] == minute), "time"].values[0]
+            data.loc[(data["period"] == 2) & (data["minute"] == minute), "time"].values[
+                0
+            ]
             for minute in second_period_labels
         ]
         for idx, label in zip(
-            first_period_idx + second_period_idx, first_period_labels + second_period_labels
+            first_period_idx + second_period_idx,
+            first_period_labels + second_period_labels,
         ):
             ax.text(
-                idx, 0, f"{label}'", ha="center", va="center", fontsize=10, color=args["text_color"]
+                idx,
+                0,
+                f"{label}'",
+                ha="center",
+                va="center",
+                fontsize=10,
+                color=args["text_color"],
             )
 
         GameFlow.shade_extra_time(ax, data)
@@ -572,7 +613,10 @@ class GameFlow:
             [-0.02, 0.02], *first_period__extra_time_range, color="lightgrey", alpha=0.5
         )
         ax.fill_betweenx(
-            [-0.02, 0.02], *second_period__extra_time_range, color="lightgrey", alpha=0.5
+            [-0.02, 0.02],
+            *second_period__extra_time_range,
+            color="lightgrey",
+            alpha=0.5,
         )
 
     @staticmethod
@@ -584,7 +628,9 @@ class GameFlow:
 
         # set the x-axis limits and remove the default ticks
         ax.set_xlim(-0.5, data["time"].max() + 0.5)
-        max_xthreat = data["xthreat"].abs().max() + 0.08  # space for balls to indicate goals
+        max_xthreat = (
+            data["xthreat"].abs().max() + 0.08
+        )  # space for balls to indicate goals
         ax.set_ylim(min(max_xthreat, -0.18), max(max_xthreat, 0.18))
         ax.axis("off")
 
@@ -618,11 +664,9 @@ class GameFlow:
             bottom=-0.02,
         )
         for bar in bars_tops:
-
             bar.set_path_effects(patheffects_top)
         for bar in bars_bottom:
             bar.set_path_effects(patheffects_bottom)
-    
 
     @staticmethod
     def place_goals(ax: Axes, data: pd.DataFrame, args: Dict[str, Any]):
@@ -633,7 +677,6 @@ class GameFlow:
         """
         home_goals = data[(data["is_home_team"] == 1) & (data["goals"] > 0)]
         away_goals = data[(data["is_home_team"] == 0) & (data["goals"] > 0)]
-        
 
         for i, r in home_goals.iterrows():
             n_goals = r["goals"]
@@ -668,7 +711,10 @@ class GameFlow:
             lambda x: (
                 x["minute"]
                 if x["period"] == 1
-                else x["minute"] + data.loc[data["period"] == 1, "minute"].max() + 1 - 45
+                else x["minute"]
+                + data.loc[data["period"] == 1, "minute"].max()
+                + 1
+                - 45
             ),
             axis=1,
         )
@@ -721,7 +767,9 @@ class Heatmap:
             EventType.TakeOn,
         ]
         data = data[data["event_type"].isin(applicable_events)]
-        data["possession_side"] = data["is_home_team"].apply(lambda x: 1 if x == 1 else -1)
+        data["possession_side"] = data["is_home_team"].apply(
+            lambda x: 1 if x == 1 else -1
+        )
         data["x"] = data.apply(
             lambda x: x["x"] if x["possession_side"] == 1 else 100 - x["x"], axis=1
         )
@@ -769,7 +817,8 @@ class Heatmap:
         )
         max_abs_value = max([abs(bins["statistic"].min()), bins["statistic"].max()])
         cmap = Heatmap.generate_colormap(
-            visualisation_parameters["home_team_color"], visualisation_parameters["away_team_color"]
+            visualisation_parameters["home_team_color"],
+            visualisation_parameters["away_team_color"],
         )
         pitch.draw(ax=ax)
         pitch.heatmap(
@@ -817,7 +866,12 @@ class ShotMap:
 
     @staticmethod
     def plot_shots(
-        data, left_side_ax, pitch_left, right_side_ax, pitch_right, visualisation_parameters
+        data,
+        left_side_ax,
+        pitch_left,
+        right_side_ax,
+        pitch_right,
+        visualisation_parameters,
     ):
         home_shots = data[
             (
@@ -836,18 +890,33 @@ class ShotMap:
             & (data["is_home_team"] == 0)
         ].copy()
         home_goals = data[
-            (data["event_type"] == EventType.Goal) & (data["is_home_team"] == 1) & (data["own_goal"] == False)
+            (data["event_type"] == EventType.Goal)
+            & (data["is_home_team"] == 1)
+            & (data["own_goal"] == False)
         ].copy()
         away_goals = data[
-            (data["event_type"] == EventType.Goal) & (data["is_home_team"] == 0) & (data["own_goal"] == False)
+            (data["event_type"] == EventType.Goal)
+            & (data["is_home_team"] == 0)
+            & (data["own_goal"] == False)
         ].copy()
         home_own_goals = data[
-            (data["event_type"] == EventType.Goal) & (data["is_home_team"] == 1) & (data["own_goal"] == True)
+            (data["event_type"] == EventType.Goal)
+            & (data["is_home_team"] == 1)
+            & (data["own_goal"] == True)
         ].copy()
         away_own_goals = data[
-            (data["event_type"] == EventType.Goal) & (data["is_home_team"] == 0) & (data["own_goal"] == True)
+            (data["event_type"] == EventType.Goal)
+            & (data["is_home_team"] == 0)
+            & (data["own_goal"] == True)
         ].copy()
-        for tbl in [home_shots, away_shots, home_goals, away_goals, home_own_goals, away_own_goals]:
+        for tbl in [
+            home_shots,
+            away_shots,
+            home_goals,
+            away_goals,
+            home_own_goals,
+            away_own_goals,
+        ]:
             tbl["size"] = np.power(
                 visualisation_parameters["min_xg_size"]
                 + (
@@ -900,8 +969,8 @@ class ShotMap:
         pitch_left.scatter(
             home_own_goals["x"],
             home_own_goals["y"],
-            s=(visualisation_parameters['min_xg_size']*2) ** 2,
-            color=(0,0,0,0.9),
+            s=(visualisation_parameters["min_xg_size"] * 2) ** 2,
+            color=(0, 0, 0, 0.9),
             edgecolors=visualisation_parameters["home_team_color"],
             ax=left_side_ax,
             zorder=3,
@@ -909,15 +978,17 @@ class ShotMap:
         pitch_right.scatter(
             away_own_goals["x"],
             away_own_goals["y"],
-            s=(visualisation_parameters['min_xg_size']*2) ** 2,
+            s=(visualisation_parameters["min_xg_size"] * 2) ** 2,
             edgecolors=visualisation_parameters["away_team_color"],
-            color=(0,0,0,0.9),
+            color=(0, 0, 0, 0.9),
             ax=right_side_ax,
             zorder=3,
         )
         home_goalmouth_y = (
             100
-            - col_get_qualifier_value(home_goals, display_name="GoalMouthY").astype(float).values
+            - col_get_qualifier_value(home_goals, display_name="GoalMouthY")
+            .astype(float)
+            .values
         )
         pitch_left.lines(
             home_goals["x"],
@@ -930,7 +1001,9 @@ class ShotMap:
         )
         away_goalmouth_y = (
             100
-            - col_get_qualifier_value(away_goals, display_name="GoalMouthY").astype(float).values
+            - col_get_qualifier_value(away_goals, display_name="GoalMouthY")
+            .astype(float)
+            .values
         )
         pitch_right.lines(
             away_goals["x"],
@@ -1036,12 +1109,16 @@ class ShotMap:
             ax, visualisation_parameters
         )
         ShotMap.plot_shots(
-            data, left_side, pitch_left, right_side, pitch_right, visualisation_parameters
+            data,
+            left_side,
+            pitch_left,
+            right_side,
+            pitch_right,
+            visualisation_parameters,
         )
 
 
 class Header:
-
     def create_header(ax, data, visualisation_parameters):
         ax.axis("off")
         home_team = data[data["is_home_team"] == 1]["decorated_team_name"].values[0]
@@ -1156,11 +1233,15 @@ class SideBars:
     @staticmethod
     def possession(ax, data, visualisation_parameters):
         possession = SideBars.agg_minutes(data)
-        SideBars.side_bar(ax, possession, visualisation_parameters, "Possession", "left")
+        SideBars.side_bar(
+            ax, possession, visualisation_parameters, "Possession", "left"
+        )
 
     @staticmethod
     def field_tilt(ax, data, visualisation_parameters):
-        final_third_passes = data[(data["event_type"] == EventType.Pass) & (data["x"] > 66.6)]
+        final_third_passes = data[
+            (data["event_type"] == EventType.Pass) & (data["x"] > 66.6)
+        ]
         final_third_passes = final_third_passes.groupby("is_home_team").size()
         home_final_third_passes = final_third_passes.get(1, 0)
         away_final_third_passes = final_third_passes.get(0, 0)
@@ -1171,7 +1252,11 @@ class SideBars:
             home_final_third_passes + away_final_third_passes
         )
         SideBars.side_bar(
-            ax, (home_field_tilt, away_field_tilt), visualisation_parameters, "Field Tilt", "right"
+            ax,
+            (home_field_tilt, away_field_tilt),
+            visualisation_parameters,
+            "Field Tilt",
+            "right",
         )
 
     @staticmethod
@@ -1198,8 +1283,8 @@ class SideBars:
             align="edge",
         )
 
-        home_fig = f"{possession[0]*100:.0f}"
-        away_fig = f"{possession[1]*100:.0f}"
+        home_fig = f"{possession[0] * 100:.0f}"
+        away_fig = f"{possession[1] * 100:.0f}"
 
         ax.text(
             0.75 if side == "left" else 0.25,
@@ -1241,19 +1326,19 @@ class SideBars:
 
     @staticmethod
     def process(
-        data: pd.DataFrame, axes: Dict[str, Axes], visualisation_parameters: Dict[str, Any]
+        data: pd.DataFrame,
+        axes: Dict[str, Axes],
+        visualisation_parameters: Dict[str, Any],
     ):
         SideBars.possession(axes["possession"], data, visualisation_parameters)
         SideBars.field_tilt(axes["field_tilt"], data, visualisation_parameters)
 
 
 class VisualiationParameterMaker:
-
     @staticmethod
     def do_compare(list1, list2, max_score):
         for i in list1:
             for k in list2:
-
                 if VisualiationParameterMaker.color_similarity_score(i, k) < max_score:
                     return i, k
 
@@ -1277,7 +1362,9 @@ class VisualiationParameterMaker:
             if team_ids[ha] not in color_data["ws_team_id"].values:
                 color_choices[ha] = default_choices
             else:
-                team_colors = color_data[color_data["ws_team_id"] == team_ids[ha]].iloc[0]
+                team_colors = color_data[color_data["ws_team_id"] == team_ids[ha]].iloc[
+                    0
+                ]
                 color_choices[ha] = [
                     team_colors["color1"],
                     team_colors["color2"],
@@ -1287,20 +1374,27 @@ class VisualiationParameterMaker:
             color_choices[ha] = [
                 c
                 for c in color_choices[ha]
-                if c and VisualiationParameterMaker.color_similarity_score(c, bg_color) < 70
+                if c
+                and VisualiationParameterMaker.color_similarity_score(c, bg_color) < 70
             ]
 
-        choices = VisualiationParameterMaker.do_compare(color_choices[1], color_choices[0], 70)
+        choices = VisualiationParameterMaker.do_compare(
+            color_choices[1], color_choices[0], 70
+        )
         if choices is not None:
             return choices
 
         color_choices[0].extend(default_choices)
-        choices = VisualiationParameterMaker.do_compare(color_choices[1], color_choices[0], 70)
+        choices = VisualiationParameterMaker.do_compare(
+            color_choices[1], color_choices[0], 70
+        )
 
         if choices is not None:
             return choices
         color_choices[1].extend(default_choices)
-        choices = VisualiationParameterMaker.do_compare(color_choices[1], color_choices[0], 70)
+        choices = VisualiationParameterMaker.do_compare(
+            color_choices[1], color_choices[0], 70
+        )
 
         return choices
 
@@ -1353,7 +1447,6 @@ class VisualiationParameterMaker:
 
 
 class PlayerStats:
-
     @staticmethod
     def is_progressive(whoscored_df: pd.DataFrame) -> pd.Series:
         """
@@ -1422,7 +1515,9 @@ class PlayerStats:
 
     @staticmethod
     def progressive_pass_received(data):
-        data = data[(data["event_type"] == EventType.Pass) & (data["outcomeType"] == 1)].copy()
+        data = data[
+            (data["event_type"] == EventType.Pass) & (data["outcomeType"] == 1)
+        ].copy()
         data["prog_pass"] = PlayerStats.is_progressive(data)
         return data.groupby("pass_receiver")["prog_pass"].sum().to_dict()
 
@@ -1434,8 +1529,12 @@ class PlayerStats:
 
     @staticmethod
     def sort_player_names(data):
-        non_starters = data[data["event_type"] == EventType.SubstitutionOn]["player_name"].unique()
-        sub_offs = data[data["event_type"] == EventType.SubstitutionOff]["player_name"].unique()
+        non_starters = data[data["event_type"] == EventType.SubstitutionOn][
+            "player_name"
+        ].unique()
+        sub_offs = data[data["event_type"] == EventType.SubstitutionOff][
+            "player_name"
+        ].unique()
         starter_data = data[~data["player_name"].isin(non_starters)]
         starters = extract_names_sorted_by_position(starter_data)
         p_list = []
@@ -1461,6 +1560,11 @@ class PlayerStats:
         players = data["player_name"].unique()
         subs_on = data[data["event_type"] == EventType.SubstitutionOn]
         subs_off = data[data["event_type"] == EventType.SubstitutionOff]
+        red_card_events = data[
+            (data["event_type"] == EventType.Card)
+            & (col_has_qualifier(data, qualifier_code=33))
+        ]
+        red_cards = []
         player_minutes = {}
         for player in players:
             start = 0
@@ -1469,8 +1573,13 @@ class PlayerStats:
                 start = subs_on[subs_on["player_name"] == player]["minute"].values[0]
             if player in subs_off["player_name"].values:
                 end = subs_off[subs_off["player_name"] == player]["minute"].values[0]
+            if player in red_card_events["player_name"].values:
+                red_cards.append(player)
+                end = red_card_events[red_card_events["player_name"] == player][
+                    "minute"
+                ].values[0]
             player_minutes[player] = end - start
-        return player_minutes
+        return player_minutes, red_cards
 
     @staticmethod
     def progressive_distance(data):
@@ -1479,7 +1588,8 @@ class PlayerStats:
         data["distance"] = np.maximum(
             data["distance"]
             * (
-                (data["event_type"].isin([EventType.Pass, EventType.Carry])) * (data["outcomeType"])
+                (data["event_type"].isin([EventType.Pass, EventType.Carry]))
+                * (data["outcomeType"])
             ),
             0,
         )
@@ -1507,14 +1617,19 @@ class PlayerStats:
         data = data[~data["event_type"].isin([EventType.Carry])]
         shots = data[
             data["event_type"].isin(
-                [EventType.ShotOnPost, EventType.SavedShot, EventType.MissedShots, EventType.Goal]
+                [
+                    EventType.ShotOnPost,
+                    EventType.SavedShot,
+                    EventType.MissedShots,
+                    EventType.Goal,
+                ]
             )
         ]
         for _, s in shots.iterrows():
-
             related_event_id = s["relatedEventId"]
             data.loc[
-                (data["eventId"] == related_event_id) & (data["teamId"] == s["teamId"]), "xA"
+                (data["eventId"] == related_event_id) & (data["teamId"] == s["teamId"]),
+                "xA",
             ] = s["xG"]
         return data.groupby("player_name")["xA"].sum().to_dict()
 
@@ -1527,7 +1642,8 @@ class PlayerStats:
         for _, a in assists.iterrows():
             related_event_id = a["relatedEventId"]
             data.loc[
-                (data["eventId"] == related_event_id) & (data["teamId"] == a["teamId"]), "assist"
+                (data["eventId"] == related_event_id) & (data["teamId"] == a["teamId"]),
+                "assist",
             ] = 1
         return data.groupby("player_name")["assist"].sum().to_dict()
 
@@ -1555,7 +1671,7 @@ class PlayerStats:
         ub_start = 0.98
         names = PlayerStats.sort_player_names(data)
         positions = data.groupby("player_name")["position"].first().to_dict()
-        minutes = PlayerStats.mins_played(data)
+        minutes, red_cards = PlayerStats.mins_played(data)
         for i in range(len(names) + 1):
             ax.axhline(ub_start - i / 17, color="grey", lw=0.5)
         ax.text(
@@ -1668,7 +1784,9 @@ class PlayerStats:
         data["duels_won"] = ground_duels_won(data) + aerial_duels_won(data)
         duels_won = data.groupby("player_name")["duels_won"].sum().to_dict()
         pp_received = PlayerStats.progressive_pass_received(data)
-        bbox_props = dict(boxstyle="circle,pad=0.1", fc=team_color, ec=team_color, lw=0.5)
+        bbox_props = dict(
+            boxstyle="circle,pad=0.1", fc=team_color, ec=team_color, lw=0.5
+        )
         data["box_entry"] = open_play_box_entry(data)
         box_entries = data.groupby("player_name")["box_entry"].sum().to_dict()
         for i, name in enumerate(names):
@@ -1691,6 +1809,16 @@ class PlayerStats:
                     edgecolor="red",
                     zorder=3,
                     marker="v",
+                )
+            if name in red_cards:
+                ax.scatter(
+                    locs["sub_gr"],
+                    ub_start - (i + 0.5) / 17,
+                    s=10,
+                    color="red",
+                    edgecolor="red",
+                    zorder=3,
+                    marker="s",
                 )
             ax.text(
                 locs["pos"],
@@ -1754,7 +1882,6 @@ class PlayerStats:
             xg = xgs.get(name, 0)
             if xg > 0:
                 if xg == max(xgs.values()):
-
                     ax.text(
                         locs["xg"],
                         ub_start - (i + 0.5) / 17,
@@ -2015,7 +2142,6 @@ class Footer:
 
 
 class PassNetworks:
-
     @staticmethod
     def initial_data_clean(data: pd.DataFrame, is_home_team: bool) -> pd.DataFrame:
         """
@@ -2046,7 +2172,7 @@ class PassNetworks:
         data = data[
             data["formation"] == data[data["formation"].notnull()]["formation"].iloc[0]
         ].copy()
-        
+
         data["is_successful"] = data["outcomeType"] == 1
 
         data["position"] = data["position"].apply(
@@ -2100,7 +2226,10 @@ class PassNetworks:
 
     @staticmethod
     def plot_average_positions(
-        data: pd.DataFrame, pitch: VerticalPitch, ax: Axes, visualisation_parameters: dict
+        data: pd.DataFrame,
+        pitch: VerticalPitch,
+        ax: Axes,
+        visualisation_parameters: dict,
     ) -> None:
         """
         This function plots the average positions of the players
@@ -2111,10 +2240,15 @@ class PassNetworks:
         s = [
             visualisation_parameters["min_dot_size"]
             + (t / visualisation_parameters["max_size_touches"])
-            * (visualisation_parameters["max_dot_size"] - visualisation_parameters["min_dot_size"])
+            * (
+                visualisation_parameters["max_dot_size"]
+                - visualisation_parameters["min_dot_size"]
+            )
             for t in data["touches"]
         ]
-        pitch.scatter(x, y, s=s, color=visualisation_parameters["chart_color"], ax=ax, zorder=3)
+        pitch.scatter(
+            x, y, s=s, color=visualisation_parameters["chart_color"], ax=ax, zorder=3
+        )
         for _, row in data.iterrows():
             x = row["x"]
             y = row["y"]
@@ -2138,7 +2272,6 @@ class PassNetworks:
         ax: Axes,
         visualisation_parameters: dict,
     ) -> None:
-
         for _, row in pass_data.iterrows():
             if row["passes"] < visualisation_parameters["min_passes_to_show"]:
                 continue
@@ -2146,18 +2279,18 @@ class PassNetworks:
             player_1 = row["player_1_position"]
             player_2 = row["player_2_position"]
             passes = row["passes"]
-            player_1_x = player_location_data[player_location_data["position"] == player_1][
-                "x"
-            ].values[0]
-            player_1_y = player_location_data[player_location_data["position"] == player_1][
-                "y"
-            ].values[0]
-            player_2_x = player_location_data[player_location_data["position"] == player_2][
-                "x"
-            ].values[0]
-            player_2_y = player_location_data[player_location_data["position"] == player_2][
-                "y"
-            ].values[0]
+            player_1_x = player_location_data[
+                player_location_data["position"] == player_1
+            ]["x"].values[0]
+            player_1_y = player_location_data[
+                player_location_data["position"] == player_1
+            ]["y"].values[0]
+            player_2_x = player_location_data[
+                player_location_data["position"] == player_2
+            ]["x"].values[0]
+            player_2_y = player_location_data[
+                player_location_data["position"] == player_2
+            ]["y"].values[0]
             line_width = visualisation_parameters["min_line_width"] + (
                 passes / visualisation_parameters["max_size_passes"]
             ) * (
@@ -2187,17 +2320,27 @@ class PassNetworks:
         vis_parameters = visualisation_parameters.copy()
         if is_home:
             vis_parameters["chart_color"] = visualisation_parameters["home_team_color"]
-            vis_parameters["text_color"] = visualisation_parameters["home_color_secondary"]
-            vis_parameters["pass_line_color"] = visualisation_parameters["home_team_color"]
+            vis_parameters["text_color"] = visualisation_parameters[
+                "home_color_secondary"
+            ]
+            vis_parameters["pass_line_color"] = visualisation_parameters[
+                "home_team_color"
+            ]
         else:
             vis_parameters["chart_color"] = visualisation_parameters["away_team_color"]
-            vis_parameters["text_color"] = visualisation_parameters["away_color_secondary"]
-            vis_parameters["pass_line_color"] = visualisation_parameters["away_team_color"]
+            vis_parameters["text_color"] = visualisation_parameters[
+                "away_color_secondary"
+            ]
+            vis_parameters["pass_line_color"] = visualisation_parameters[
+                "away_team_color"
+            ]
         data = PassNetworks.initial_data_clean(data, is_home)
         touch_data = PassNetworks.aggregate_touches(data)
         pass_data = PassNetworks.aggregate_pass_pairs(data)
         PassNetworks.plot_average_positions(touch_data, pitch, ax, vis_parameters)
-        PassNetworks.plot_passing_lines(pass_data, touch_data, pitch, ax, vis_parameters)
+        PassNetworks.plot_passing_lines(
+            pass_data, touch_data, pitch, ax, vis_parameters
+        )
         max_minutes = data["minute"].max()
         pitch.text(
             -0.5,
@@ -2223,7 +2366,9 @@ class PassNetworks:
 
         for position in positionslist:
             x, y = position.x, position.y
-            small_pitch.scatter(x, y, color=vis_parameters["chart_color"], s=15, ax=small_pitch_ax)
+            small_pitch.scatter(
+                x, y, color=vis_parameters["chart_color"], s=15, ax=small_pitch_ax
+            )
 
     @staticmethod
     def process(data, axes, visualisation_parameters):
